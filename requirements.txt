@@ -1,0 +1,12 @@
+itsdangerous~=2.1.2
+python-dotenv~=1.0.0
+Flask~=2.2.3
+Flask-Cors
+Flask-SQLAlchemy
+Flask-Migrate
+flask-marshmallow
+marshmallow-sqlalchemy
+Flask-HTTPAuth
+eventlet
+psycopg2-binary
+passlib~=1.7.4
