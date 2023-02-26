@@ -1,4 +1,5 @@
 from random import randint
+
 from itsdangerous import BadSignature, SignatureExpired
 from itsdangerous.url_safe import URLSafeTimedSerializer as Serializer
 from passlib.apps import custom_app_context as pwd_context
@@ -21,7 +22,7 @@ class User(db.Model):
         return pwd_context.verify(password, self.password_hash)
 
     def generate_auth_token(self, expiration=60 * 60 * 240):
-        s = Serializer(app.config['SECRET_KEY'], expires_in=expiration)
+        s = Serializer(app.config['SECRET_KEY'])  # fixme expire
         token = s.dumps({'id': self.id})
         return token, expiration
 

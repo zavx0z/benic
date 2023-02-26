@@ -23,7 +23,7 @@ def get_auth_token():
     user = g.user
     token, expiration = user.generate_auth_token()
     data = {
-        "token": token.decode('ascii'),
+        "token": token,
         "expiration": expiration,
         "user": {"id": user.id, "login": user.login}
     }
@@ -46,7 +46,7 @@ def join():
         db.session.commit()
         token, expiration = user.generate_auth_token()
         data = {
-            "token": token.decode('ascii'),
+            "token": token,
             "expiration": expiration,
             "user": {"id": user.id, "login": user.login}
         }
@@ -60,7 +60,7 @@ def log_in():
     user = g.user
     token, expiration = user.generate_auth_token()
     data = {
-        "token": token.decode('ascii'),
+        "token": token,
         "expiration": expiration,
         "user": {"id": user.id, "login": user.login}
     }
