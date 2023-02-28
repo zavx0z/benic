@@ -50,8 +50,9 @@ class Request(BaseModel):
 
 
 class Response(BaseModel):
-    access_token: str
-    refresh_token: str
+    userID: int
+    accessToken: str
+    refreshToken: str
 
 
 @router.post("/api.v1/login")
@@ -64,7 +65,8 @@ async def login(item: Request, db=Depends(get_db), authjwt: AuthJWT = Depends())
     refresh_token = authjwt.create_refresh_token(subject=user.username)  # Генерируем токен обновления
     # save_refresh_token(refresh_token, db)
     return Response(
-        access_token=access_token,
-        refresh_token=refresh_token,
+        userID=user.id,
+        accessToken=access_token,
+        refreshToken=refresh_token,
         status=200
     )
