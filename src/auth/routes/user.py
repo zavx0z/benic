@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
+from fastapi_jwt_auth.exceptions import FreshTokenRequired
 
 router = APIRouter()
 
@@ -12,7 +13,7 @@ async def get_user(authjwt: AuthJWT = Depends()):
         authjwt.jwt_required()
         username = authjwt.get_jwt_subject()
         return {"username": username}
-    except authjwt.exceptions.JWTExpiredSignatureError:
+    except FreshTokenRequired:
         return JSONResponse(
             status_code=401,
             content={"detail": "Access token has expired. Please request a new one using the provided refresh token.", "refresh_url": "/api.v1/refresh"},
