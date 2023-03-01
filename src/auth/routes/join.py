@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.auth.routes.login import create_access_token
+from src.auth.schema import UserData
 from src.shared.db import get_db
 
 router = APIRouter()
@@ -36,23 +37,18 @@ async def create_user(db: AsyncSession, username: str, password: str):
     return user
 
 
-class Response(BaseModel):
-    userID: int
-    accessToken: str
-    refreshToken: str
-
-
 @router.post("/api.v1/join")
-async def register(item: Credentials, db=Depends(get_db), authjwt: AuthJWT = Depends()) -> Response:
+async def register(item: Credentials, db=Depends(get_db), authjwt: AuthJWT = Depends()) -> UserData:
     """Регистрация нового пользователя"""
     user = await get_user(db, item.username)
     if user:
-        raise HTTPException(status_code=400, detail="already_registered")
+        raise HTTPException(status_code=401, detail="already registered")
     user = await create_user(db, item.username, item.password)
     access_token = create_access_token({"username": user.username}, authjwt)  # Генерируем токен авторизации
     refresh_token = authjwt.create_refresh_token(subject=user.username)  # Генерируем токен обновления
-    return Response(
-        userID=user.id,
+    return UserData(
+        id=user.id,
+        username=user.username,
         accessToken=access_token,
         refreshToken=refresh_token
     )

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from config import ACCESS_TOKEN_EXPIRE_MINUTES
 from src.auth.models import User
+from src.auth.schema import UserData
 from src.shared.db import get_db
 
 router = APIRouter()
@@ -49,14 +50,8 @@ class Request(BaseModel):
     password: str
 
 
-class Response(BaseModel):
-    userID: int
-    accessToken: str
-    refreshToken: str
-
-
 @router.post("/api.v1/login")
-async def login(item: Request, db=Depends(get_db), authjwt: AuthJWT = Depends()) -> Response:
+async def login(item: Request, db=Depends(get_db), authjwt: AuthJWT = Depends()) -> UserData:
     """Аутентификация и выдача токена"""
     user = await authenticate_user(item.username, item.password, db)
     if not user:
@@ -64,8 +59,9 @@ async def login(item: Request, db=Depends(get_db), authjwt: AuthJWT = Depends())
     access_token = create_access_token({"username": user.username}, authjwt)  # Генерируем токен авторизации
     refresh_token = authjwt.create_refresh_token(subject=user.username)  # Генерируем токен обновления
     # save_refresh_token(refresh_token, db)
-    return Response(
-        userID=user.id,
+    return UserData(
+        id=user.id,
+        username=user.username,
         accessToken=access_token,
         refreshToken=refresh_token,
         status=200

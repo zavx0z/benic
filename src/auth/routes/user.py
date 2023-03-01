@@ -12,7 +12,7 @@ router = APIRouter()
 
 
 class ItemUser(BaseModel):
-    userID: int
+    id: int
     username: str
 
 
@@ -25,7 +25,10 @@ async def get_user(authjwt: AuthJWT = Depends(), db=Depends(get_db)):
         stmt = select(User).where(User.username == username)
         result = await db.execute(stmt)
         user = result.scalars().first()
-        return ItemUser(userID=user.id, username=username)
+        return ItemUser(
+            id=user.id,
+            username=username
+        )
     except FreshTokenRequired:
         return JSONResponse(
             status_code=401,

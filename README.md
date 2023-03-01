@@ -6,7 +6,7 @@ stop and rm data
 docker stop db && sudo rm -rf ../store/data/
 ```
 
-run
+Postgresql база данных запуск
 
 ```shell
 sh ./scripts/startDB.sh
