@@ -1,8 +1,9 @@
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(Path(__file__).parents[1] / '.env')
 
 POSTGRES_DB = os.getenv('POSTGRES_DB')
 POSTGRES_HOST = os.getenv('POSTGRES_HOST', 'localhost')

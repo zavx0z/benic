@@ -1,3 +1,26 @@
+## APP
+
+Сборка образа
+
+```shell
+docker build -t zavx0z:benic .
+```
+
+Запуск контейнера
+
+```shell
+docker run -d --rm \
+  --name app \
+  -e POSTGRES_USER=zavx0zBenif \
+  -e POSTGRES_PASSWORD=12112022 \
+  -e POSTGRES_DB=benif \
+  -e JWT_SECRET_KEY='adkngdfFDGSDFqhnlakjflorqirefOJ;SJDG' \
+  -p 8080:8000 \
+  zavx0z:benic
+```
+
+----------------------------------------------------------------
+
 ## Docker
 
 stop and rm data
