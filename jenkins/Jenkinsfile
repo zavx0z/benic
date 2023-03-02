@@ -1,0 +1,20 @@
+pipeline {
+    agent any
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '4', artifactNumToKeepStr: '4'))
+        disableConcurrentBuilds(abortPrevious: true)
+    }
+    parameters {
+        string( name: 'host', defaultValue: "95.163.235.179", description: 'Адрес сервера')
+    }
+    environment {
+    }
+    stages {
+        stage('Тест соединения') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: repozitarium, keyFileVariable: key')]) {
+                    sh "ssh -i ${key} root@${host} -C 'echo $HOME'"
+            }
+        }
+    }
+}

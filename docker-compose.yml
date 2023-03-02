@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  app:
+    build: ./app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - ./app:/app
+    env_file:
+      - app/.env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=db
+    depends_on:
+      - db
+    restart: always
+
+  db:
+    image: postgres:13
+    env_file:
+      - app/.env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+    restart: always
+
+  nginx:
+    image: nginx:1.21.5-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/letsencrypt/live/${DOMAIN}
+      - /var/log/nginx:/var/log/nginx
+      - /var/www/certbot:/var/www/certbot
+    depends_on:
+      - app
+    command: sh -c "/etc/nginx/entrypoint.sh && nginx -g 'daemon off;'"
+
+  certbot:
+    image: certbot/certbot:latest
+    env_file:
+      - app/.env
+    volumes:
+      - /var/www/certbot:/var/www/certbot
+      - ./nginx/ssl:/etc/letsencrypt/live/${DOMAIN}
+    depends_on:
+      - nginx
+    entrypoint: sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;"
+
+volumes:
+  pgdata:
