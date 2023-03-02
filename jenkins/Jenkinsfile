@@ -12,7 +12,7 @@ pipeline {
     stages {
         stage('Тест соединения') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: repozitarium, keyFileVariable: key')]) {
+                withCredentials([sshUserPrivateKey(credentialsId: repozitarium, keyFileVariable: key)]) {
                     sh "ssh -i ${key} root@${host} -C 'echo $HOME'"
             }
         }
