@@ -7,13 +7,15 @@ pipeline {
     parameters {
         string( name: 'host', defaultValue: "95.163.235.179", description: 'Адрес сервера')
     }
-    environment {
-    }
     stages {
         stage('Тест соединения') {
             steps {
-                withCredentials([sshUserPrivateKey(credentialsId: repozitarium, keyFileVariable: key')]) {
-                    sh "ssh -i ${key} root@${host} -C 'echo $HOME'"
+                withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
+                    script {
+                        def result = sh returnStdout: true, script:'ssh -i ${sshKey} root@${host} -C "echo \\$HOME"'
+                        echo result
+                    }
+                }
             }
         }
     }
