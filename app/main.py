@@ -2,7 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_jwt_auth.exceptions import AuthJWTException
 from fastapi.responses import JSONResponse
-from app.auth.routes import refresh, login, user, join
+from auth.routes import refresh, login, user, join
 from fastapi_jwt_auth import AuthJWT
 from pydantic.main import BaseModel
 from config import JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES

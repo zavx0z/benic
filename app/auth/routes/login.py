@@ -7,10 +7,10 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.config import ACCESS_TOKEN_EXPIRE_MINUTES
-from app.auth.models import User
-from src import UserData
-from src import get_db
+from auth.schema import UserData
+from config import ACCESS_TOKEN_EXPIRE_MINUTES
+from auth.models import User
+from shared.db import get_db
 
 router = APIRouter()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")  # Определяем объект контекста для шифрования паролей

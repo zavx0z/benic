@@ -4,9 +4,8 @@ from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import FreshTokenRequired
 from pydantic.main import BaseModel
 from sqlalchemy import select
-
-from app.auth.models import User
-from src import get_db
+from auth.models import User
+from shared.db import get_db
 
 router = APIRouter()
 
