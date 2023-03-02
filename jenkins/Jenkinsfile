@@ -18,5 +18,14 @@ pipeline {
                 }
             }
         }
+        stage('Копирование проекта') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
+                    script {
+                        sh 'scp -i ${sshKey} -rp ${WORKSPACE} root@${host}:/app'
+                    }
+                }
+            }
+        }
     }
 }
