@@ -12,7 +12,15 @@ pipeline {
     }
     parameters {
         string( name: 'ip_address', defaultValue: "95.163.235.179", description: 'IP-адрес сервера')
-        booleanParam(name: 'clear', defaultValue: false, description: 'Перезаписать')
+        string( name: 'STORE_DIR', defaultValue: "/store")
+        string( name: 'DOMAIN', defaultValue: "zavx0z.com")
+        string( name: 'EMAIL', defaultValue: "metaversebdfl@gmail.com")
+        string( name: 'POSTGRES_DB', defaultValue: "benif")
+        string( name: 'POSTGRES_HOST', defaultValue: "db")
+        string( name: 'POSTGRES_PORT', defaultValue: "5432")
+        string( name: 'POSTGRES_USER', defaultValue: "zavx0zBenif")
+        string( name: 'POSTGRES_PASSWORD', defaultValue: "12112022")
+        string( name: 'JWT_SECRET_KEY', defaultValue: "adkngdfFDGSDFqhnlakjflorqirefOJ;SJDG")
     }
     environment {
         ROOT_APP_DIR='/app'
@@ -20,15 +28,14 @@ pipeline {
     stages {
         stage ('Настройка SSH соединения') {
             steps {
-                build job: 'known_host', wait: false, parameters: [string(name: 'ip_address', value: '95.163.235.179')]
+                build job: 'known_host', wait: true, parameters: [string(name: 'ip_address', value: '95.163.235.179')]
             }
         }
         stage('Копирование проекта') {
             steps {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
-                        remote.identityFile = sshKey
-                        sshPut remote: remote, from: "${WORKSPACE}", into: "${ROOT_APP_DIR}"
+                        sh script: 'scp -i ${sshKey} -rp ${WORKSPACE} root@${ip_address}:${ROOT_APP_DIR}', returnStdout: true
                     }
                 }
             }
@@ -46,7 +53,7 @@ pipeline {
         }
         stage ('Открытие порта 443') {
             steps {
-                build job: 'openHTTPS', wait: false, parameters: [string(name: 'ip_address', value: '95.163.235.179')]
+                build job: 'openHTTPS', wait: true, parameters: [string(name: 'ip_address', value: '95.163.235.179')]
             }
         }
     }
