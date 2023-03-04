@@ -56,5 +56,16 @@ pipeline {
                 build job: 'openHTTPS', wait: true, parameters: [string(name: 'ip_address', value: '95.163.235.179')]
             }
         }
+        stage ('Получение сертификата') {
+            steps {
+                build job: 'cert', wait: true, parameters: [
+                    string( name: 'ip_address', value: params.ip_address),
+                    string( name: 'STORE_DIR', value: params.STORE_DIR),
+                    string( name: 'DOMAIN', value: params.DOMAIN),
+                    string( name: 'EMAIL', value: params.EMAIL),
+                    string( name: 'APP_HOST', value: "app"),
+                ]
+            }
+        }
     }
 }
