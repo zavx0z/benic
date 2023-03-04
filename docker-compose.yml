@@ -20,6 +20,7 @@ services:
     depends_on:
       - db
     restart: always
+    hostname: ${APP_HOST
 
   db:
     container_name: db
