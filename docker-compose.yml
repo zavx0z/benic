@@ -2,6 +2,7 @@ version: "3.9"
 
 services:
   app:
+    container_name: app
     build: .
     env_file:
       - .env
@@ -21,6 +22,7 @@ services:
     restart: always
 
   db:
+    container_name: db
     image: postgres:alpine
     env_file:
       - .env
