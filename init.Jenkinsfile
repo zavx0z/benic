@@ -1,6 +1,6 @@
 def remote = [:]
 remote.name = "root"
-remote.host = params.ip_address
+remote.host = params.IP
 remote.allowAnyHosts = true
 remote.user = "root"
 
@@ -11,7 +11,7 @@ pipeline {
         disableConcurrentBuilds(abortPrevious: true)
     }
     parameters {
-        string( name: 'ip_address', defaultValue: "95.163.235.179", description: 'IP-адрес сервера')
+        string( name: 'IP', defaultValue: "95.163.235.179", description: 'IP-адрес сервера')
         string( name: 'STORE_DIR', defaultValue: "/store")
         string( name: 'DOMAIN', defaultValue: "zavx0z.com")
         string( name: 'EMAIL', defaultValue: "metaversebdfl@gmail.com")
@@ -24,26 +24,27 @@ pipeline {
     }
     environment {
         ROOT_APP_DIR='/app'
+        CERTBOT_DIR="${STORE_DIR}/certbot"
+        NGINX_DIR="${STORE_DIR}/nginx/conf.d"
     }
     stages {
         stage ('Настройка SSH соединения') {
             steps {
-                build job: 'known_host', wait: true, parameters: [string(name: 'ip_address', value: '95.163.235.179')]
+                build job: 'known_host', wait: true, parameters: [string(name: 'ip_address', value: params.IP)]
             }
         }
         stage ('Открытие порта 443') {
             steps {
-                build job: 'openHTTPS', wait: true, parameters: [string(name: 'ip_address', value: '95.163.235.179')]
+                build job: 'openHTTPS', wait: true, parameters: [string(name: 'ip_address', value: params.IP)]
             }
         }
         stage ('Получение сертификата') {
             steps {
                 build job: 'cert', wait: true, parameters: [
-                    string( name: 'ip_address', value: params.ip_address),
-                    string( name: 'STORE_DIR', value: params.STORE_DIR),
+                    string( name: 'IP', value: params.IP),
+                    string( name: 'CERTBOT_DIR', value: params.STORE_DIR),
                     string( name: 'DOMAIN', value: params.DOMAIN),
                     string( name: 'EMAIL', value: params.EMAIL),
-//                    string( name: 'APP_HOST', value: "app"),
                 ]
             }
         }
@@ -51,12 +52,24 @@ pipeline {
             steps {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
-                        sh script: 'scp -i ${sshKey} -rp ${WORKSPACE} root@${ip_address}:${ROOT_APP_DIR}', returnStdout: true
+                        sh script: 'scp -i ${sshKey} -rp ${WORKSPACE} root@${IP}:${ROOT_APP_DIR}', returnStdout: true
                     }
                 }
             }
         }
-        stage('Запуск приложения с базой') {
+        stage('Настройка Nginx') {
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
+                        remote.identityFile = sshKey
+                        sshCommand remote: remote, command: "sed -i \"s/\\\${DOMAIN}/${DOMAIN}/g\" ${NGINX_DIR}/nginx.conf"
+                        sshCommand remote: remote, command: "sed -i \"s/\\\${APP_HOST}/${APP_HOST}/g\" ${NGINX_DIR}/nginx.conf"
+                        sshCommand remote: remote, command: "sed -i \"s/\\\${CERTBOT_DIR}/${CERTBOT_DIR}/g\" ${NGINX_DIR}/nginx.conf"
+                    }
+                }
+            }
+        }
+        stage('Запуск') {
             steps {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
@@ -67,16 +80,5 @@ pipeline {
                 }
             }
         }
-//        stage ('Запуск прокси с сертификацией') {
-//            steps {
-//                build job: 'cert', wait: true, parameters: [
-//                    string( name: 'ip_address', value: params.ip_address),
-//                    string( name: 'STORE_DIR', value: params.STORE_DIR),
-//                    string( name: 'DOMAIN', value: params.DOMAIN),
-//                    string( name: 'EMAIL', value: params.EMAIL),
-//                    string( name: 'APP_HOST', value: "app"),
-//                ]
-//            }
-//        }
     }
 }
