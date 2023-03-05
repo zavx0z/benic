@@ -28,7 +28,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ${STORE_DIR}/db:/var/lib/postgresql/data/
+      - ${STORE_DIR}/db/data:/var/lib/postgresql/data/
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -47,6 +47,6 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/nginx.conf
+      - ${NGINX_DIR}/conf.d:/etc/nginx/conf.d
       - ${CERTBOT_DIR}/conf:/etc/letsencrypt
       - ${CERTBOT_DIR}/www:/var/www/certbot

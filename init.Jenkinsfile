@@ -25,7 +25,7 @@ pipeline {
     environment {
         ROOT_APP_DIR='/app'
         CERTBOT_DIR="${STORE_DIR}/certbot"
-        NGINX_DIR="${STORE_DIR}/nginx/conf.d"
+        NGINX_DIR="${STORE_DIR}/nginx"
     }
     stages {
         stage ('Настройка SSH соединения') {
@@ -62,9 +62,11 @@ pipeline {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
                         remote.identityFile = sshKey
-                        sshCommand remote: remote, command: "sed -i \"s/\\\${DOMAIN}/${DOMAIN}/g\" ${NGINX_DIR}/nginx.conf"
-                        sshCommand remote: remote, command: "sed -i \"s/\\\${APP_HOST}/${APP_HOST}/g\" ${NGINX_DIR}/nginx.conf"
-                        sshCommand remote: remote, command: "sed -i \"s/\\\${CERTBOT_DIR}/${CERTBOT_DIR}/g\" ${NGINX_DIR}/nginx.conf"
+                        def nginxConf = "${env.NGINX_DIR}/conf.d/nginx.conf"
+                        sshPut remote: remote, from: "./nginx.conf", into: nginxConf
+                        sshCommand remote: remote, command: "sed -i \"s/\\\${DOMAIN}/${DOMAIN}/g\" ${nginxConf}"
+                        sshCommand remote: remote, command: "sed -i \"s/\\\${APP_HOST}/${APP_HOST}/g\" ${nginxConf}"
+                        sshCommand remote: remote, command: "sed -i \"s/\\\${CERTBOT_DIR}/${CERTBOT_DIR}/g\" ${nginxConf}"
                     }
                 }
             }
