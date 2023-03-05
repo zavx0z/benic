@@ -63,6 +63,7 @@ pipeline {
                     withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
                         remote.identityFile = sshKey
                         def nginxConf = "${env.NGINX_DIR}/conf.d/nginx.conf"
+                        sshCommand remote: remote, command: "mkdir -p ${env.NGINX_DIR}/conf.d"
                         sshPut remote: remote, from: "./nginx.conf", into: nginxConf
                         sshCommand remote: remote, command: "sed -i \"s/\\\${DOMAIN}/${DOMAIN}/g\" ${nginxConf}"
                         sshCommand remote: remote, command: "sed -i \"s/\\\${APP_HOST}/${APP_HOST}/g\" ${nginxConf}"
