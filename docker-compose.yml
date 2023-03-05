@@ -48,5 +48,6 @@ services:
       - "443:443"
     volumes:
       - ${NGINX_DIR}/conf.d:/etc/nginx/conf.d
+      - ${NGINX_DIR}/log:/var/log/nginx
       - ${CERTBOT_DIR}/conf:/etc/letsencrypt
       - ${CERTBOT_DIR}/www:/var/www/certbot
