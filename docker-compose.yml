@@ -20,7 +20,10 @@ services:
     depends_on:
       - db
     restart: always
-    hostname:  ${APP_HOST}
+    networks:
+      net:
+        aliases:
+          - ${APP_HOST}
 
   db:
     container_name: db
@@ -36,18 +39,11 @@ services:
     ports:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
     restart: always
-    hostname: ${POSTGRES_HOST}
+    networks:
+      net:
+        aliases:
+          - ${POSTGRES_HOST}
 
-  nginx:
-    container_name: nginx
-    env_file:
-      - .env
-    image: nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ${NGINX_DIR}/conf.d:/etc/nginx/conf.d
-      - ${NGINX_DIR}/log:/var/log/nginx
-      - ${CERTBOT_DIR}/conf:/etc/letsencrypt
-      - ${CERTBOT_DIR}/www:/var/www/certbot
+networks:
+  net:
+    driver: bridge
