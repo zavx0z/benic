@@ -22,76 +22,70 @@ pipeline {
         string( name: 'POSTGRES_PASSWORD', defaultValue: "12112022")
         string( name: 'JWT_SECRET_KEY', defaultValue: "adkngdfFDGSDFqhnlakjflorqirefOJ;SJDG")
         booleanParam(name: 'Refresh', defaultValue: false, description: 'Перезагрузка параметров')
+        booleanParam(name: 'Staging', defaultValue: false)
     }
     environment {
         ROOT_APP_DIR='/app'
         CERTBOT_DIR="${STORE_DIR}/certbot"
         NGINX_DIR="${STORE_DIR}/nginx"
+        APP_NETWORK='app_net'
+        APP_HOST='app'
     }
     stages {
         stage('Перезагрузка параметров') {
-            when { expression { return parameters.Refresh == true } }
+            when { expression { return params.Refresh == true } }
             steps { echo("Ended pipeline early.") }
         }
         stage ('Настройка SSH соединения') {
-            when { expression { return parameters.Refresh == false } }
+            when { expression { return params.Refresh == false } }
             steps {
                 build job: 'known_host', wait: true, parameters: [string(name: 'ip_address', value: params.IP)]
             }
         }
         stage ('Открытие порта 443') {
-            when { expression { return parameters.Refresh == false } }
+            when { expression { return params.Refresh == false } }
             steps {
                 build job: 'openHTTPS', wait: true, parameters: [string(name: 'ip_address', value: params.IP)]
             }
         }
         stage ('Получение сертификата') {
-            when { expression { return parameters.Refresh == false } }
+            when { expression { return params.Refresh == false } }
             steps {
                 build job: 'cert', wait: true, parameters: [
                     string( name: 'IP', value: params.IP),
-                    string( name: 'CERTBOT_DIR', value: params.CERTBOT_DIR),
+                    string( name: 'CERTBOT_DIR', value: env.CERTBOT_DIR),
                     string( name: 'DOMAIN', value: params.DOMAIN),
                     string( name: 'EMAIL', value: params.EMAIL),
+                    booleanParam(name: 'Staging', value: params.Staging)
                 ]
             }
         }
-        stage('Копирование проекта') {
-            when { expression { return parameters.Refresh == false } }
+        stage('Приложение с базой данных') {
+            when { expression { return params.Refresh == false } }
             steps {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
+                        remote.identityFile = sshKey
                         sh script: 'scp -i ${sshKey} -rp ${WORKSPACE} root@${IP}:${ROOT_APP_DIR}', returnStdout: true
-                    }
-                }
-            }
-        }
-        stage('Настройка Nginx') {
-            when { expression { return parameters.Refresh == false } }
-            steps {
-                script {
-                    withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
-                        remote.identityFile = sshKey
-                        def nginxConf = "${env.NGINX_DIR}/conf.d/nginx.conf"
-                        sshCommand remote: remote, command: "mkdir -p ${env.NGINX_DIR}/conf.d"
-                        sshPut remote: remote, from: "./nginx.conf", into: nginxConf
-                        sshCommand remote: remote, command: "sed -i \"s/\\\${DOMAIN}/${DOMAIN}/g\" ${nginxConf}"
-                        sshCommand remote: remote, command: "sed -i \"s/\\\${APP_HOST}/${APP_HOST}/g\" ${nginxConf}"
-                        sshCommand remote: remote, command: "sed -i \"s/\\\${CERTBOT_DIR}/${CERTBOT_DIR}/g\" ${nginxConf}"
-                    }
-                }
-            }
-        }
-        stage('Запуск') {
-            when { expression { return parameters.Refresh == false } }
-            steps {
-                script {
-                    withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
-                        remote.identityFile = sshKey
                         sshCommand remote: remote, command: "docker-compose -f ${ROOT_APP_DIR}/docker-compose.yml build"
-                        sshCommand remote: remote, command: "docker-compose -f ${ROOT_APP_DIR}/docker-compose.yml up -d"
+                        sshCommand remote: remote, command: "docker-compose -f ${ROOT_APP_DIR}/docker-compose.yml up -d --force-recreate"
                     }
                 }
+            }
+        }
+        stage ('Сертифицированный прокси-сервер') {
+            when { expression { return params.Refresh == false } }
+            steps {
+                build job: 'certProxy', wait: true, parameters: [
+                    string( name: 'IP', value: params.IP),
+                    string( name: 'CERTBOT_DIR', value: env.CERTBOT_DIR),
+                    string( name: 'NGINX_DIR', value: env.NGINX_DIR),
+                    string( name: 'DOMAIN', value: params.DOMAIN),
+                    string( name: 'EMAIL', value: params.EMAIL),
+                    string( name: 'APP_NETWORK', value: env.APP_NETWORK),
+                    string( name: 'APP_HOST', value: env.APP_HOST),
+                    booleanParam(name: 'Staging', value: params.Staging)
+                ]
             }
         }
     }
