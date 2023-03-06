@@ -21,6 +21,7 @@ pipeline {
         string( name: 'POSTGRES_USER', defaultValue: "zavx0zBenif")
         string( name: 'POSTGRES_PASSWORD', defaultValue: "12112022")
         string( name: 'JWT_SECRET_KEY', defaultValue: "adkngdfFDGSDFqhnlakjflorqirefOJ;SJDG")
+        booleanParam(name: 'Refresh', defaultValue: false, description: 'Перезагрузка параметров')
     }
     environment {
         ROOT_APP_DIR='/app'
@@ -28,27 +29,35 @@ pipeline {
         NGINX_DIR="${STORE_DIR}/nginx"
     }
     stages {
+        stage('Перезагрузка параметров') {
+            when { expression { return parameters.Refresh == true } }
+            steps { echo("Ended pipeline early.") }
+        }
         stage ('Настройка SSH соединения') {
+            when { expression { return parameters.Refresh == false } }
             steps {
                 build job: 'known_host', wait: true, parameters: [string(name: 'ip_address', value: params.IP)]
             }
         }
         stage ('Открытие порта 443') {
+            when { expression { return parameters.Refresh == false } }
             steps {
                 build job: 'openHTTPS', wait: true, parameters: [string(name: 'ip_address', value: params.IP)]
             }
         }
         stage ('Получение сертификата') {
+            when { expression { return parameters.Refresh == false } }
             steps {
                 build job: 'cert', wait: true, parameters: [
                     string( name: 'IP', value: params.IP),
-                    string( name: 'CERTBOT_DIR', value: params.STORE_DIR),
+                    string( name: 'CERTBOT_DIR', value: params.CERTBOT_DIR),
                     string( name: 'DOMAIN', value: params.DOMAIN),
                     string( name: 'EMAIL', value: params.EMAIL),
                 ]
             }
         }
         stage('Копирование проекта') {
+            when { expression { return parameters.Refresh == false } }
             steps {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
@@ -58,6 +67,7 @@ pipeline {
             }
         }
         stage('Настройка Nginx') {
+            when { expression { return parameters.Refresh == false } }
             steps {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
@@ -73,6 +83,7 @@ pipeline {
             }
         }
         stage('Запуск') {
+            when { expression { return parameters.Refresh == false } }
             steps {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
