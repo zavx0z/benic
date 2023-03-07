@@ -30,6 +30,7 @@ pipeline {
         NGINX_DIR="${STORE_DIR}/nginx"
         APP_NETWORK='app_net'
         APP_HOST='app'
+        BACKUP_DIR='/media/hdd/backUp'
     }
     stages {
         stage('Перезагрузка параметров') {
@@ -59,6 +60,17 @@ pipeline {
                     booleanParam(name: 'Staging', value: params.Staging)
                 ]
             }
+        }
+        stage ('Резервирование сертификата') {
+            when { expression { return params.Refresh == false } }
+            steps {
+                build job: 'backUpCertificate', wait: true, parameters: [
+                    string(name: 'IP', value: params.IP)
+                    string(name: 'FROM', value: "${env.CERTBOT_DIR}/conf")
+                    string(name: 'TO', value: env.BACKUP_DIR)
+                ]
+            }
+
         }
         stage('Приложение с базой данных') {
             when { expression { return params.Refresh == false } }
