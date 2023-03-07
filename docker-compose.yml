@@ -31,7 +31,8 @@ services:
     env_file:
       - .env
     volumes:
-      - ${STORE_DIR}/db/data:/var/lib/postgresql/data/
+      - ${POSTGRES_DIR}/data:/var/lib/postgresql/data/
+      - ${POSTGRES_DIR}/backup:/backup
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}

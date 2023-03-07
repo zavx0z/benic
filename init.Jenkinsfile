@@ -26,8 +26,11 @@ pipeline {
     }
     environment {
         ROOT_APP_DIR='/app'
+
+        POSTGRES_DIR="${STORE_DIR}/db"
         CERTBOT_DIR="${STORE_DIR}/certbot"
         NGINX_DIR="${STORE_DIR}/nginx"
+
         APP_NETWORK='app_net'
         APP_HOST='app'
         BACKUP_DIR='/media/hdd/backUp'
@@ -65,8 +68,8 @@ pipeline {
             when { expression { return params.Refresh == false } }
             steps {
                 build job: 'backUpCertificate', wait: true, parameters: [
-                    string(name: 'IP', value: params.IP)
-                    string(name: 'FROM', value: "${env.CERTBOT_DIR}/conf")
+                    string(name: 'IP', value: params.IP),
+                    string(name: 'FROM', value: "${env.CERTBOT_DIR}/conf"),
                     string(name: 'TO', value: env.BACKUP_DIR)
                 ]
             }
