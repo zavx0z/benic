@@ -6,8 +6,9 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from auth.models import User
+from chat.models import Message, Dialog, DialogParticipant
 from config import SQLALCHEMY_DATABASE_URL
-from shared import metadata
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -23,7 +24,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = metadata
+target_metadata = User.metadata
 
 
 # other values from the config, defined by the needs of env.py,
