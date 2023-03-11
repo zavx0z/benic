@@ -4,9 +4,10 @@ from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException
 from pydantic.main import BaseModel
+
 from auth.routes import refresh, login, user, join
+from chat import routes
 from config import JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
-import chat.io
 from shared.socketio import sio_app
 
 app = FastAPI()
@@ -42,5 +43,6 @@ app.include_router(login.router)
 app.include_router(join.router)
 app.include_router(user.router)
 app.include_router(refresh.router)
+app.include_router(routes.router)
 
 app.mount('/', sio_app)
