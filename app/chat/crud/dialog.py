@@ -28,7 +28,7 @@ async def get_dialog_by_id(dialog_id: int):
     return dialog
 
 
-async def get_dialog_by_user_id_and_name(user_id: int, dialog_name: str):
+async def get_dialogs_by_user_id_and_name(user_id: int, dialog_name: str):
     """Получение диалога по ID пользователя и имени диалога"""
     async with async_session() as session:
         stmt = (
@@ -39,28 +39,5 @@ async def get_dialog_by_user_id_and_name(user_id: int, dialog_name: str):
             .options(selectinload(Dialog.participants).selectinload(DialogParticipant.user))
         )
         result = await session.execute(stmt)
-        dialog = result.scalar_one_or_none()
-        return dialog
-
-
-async def get_dialogs_by_user_id(user_id: int):
-    """Получение списка диалогов для пользователя"""
-    async with async_session() as session:
-        query = (
-            select(Dialog)
-            .join(DialogParticipant)
-            .filter(DialogParticipant.user_id == user_id)
-        )
-        result = await session.execute(query)
         dialogs = result.scalars().all()
-        # для каждого диалога делаем дополнительный запрос для получения участников
-        for dialog in dialogs:
-            query = (
-                select(DialogParticipant)
-                .filter(DialogParticipant.dialog_id == dialog.id)
-                .options(selectinload(DialogParticipant.user))
-            )
-            result = await session.execute(query)
-            participants = result.scalars().all()
-            dialog.participants = participants
-    return dialogs
+        return dialogs
