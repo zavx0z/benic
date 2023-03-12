@@ -9,6 +9,7 @@ from auth.routes import refresh, login, user, join
 from chat import routes
 from config import JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 from shared.socketio import sio_app
+import chat.socketio
 
 app = FastAPI()
 

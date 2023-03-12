@@ -24,8 +24,8 @@ session.expunge(user, options=[sa.orm.joinedload('dialogs')])
 
 async def get_user(pk):
     async with async_session() as session:
-        result = await session.execute(select(User).options(joinedload(User.dialogs)).where(User.id == pk))
-        # result = await session.execute(select(User).where(User.id == pk))
+        # result = await session.execute(select(User).options(joinedload(User.dialogs)).where(User.id == pk))
+        result = await session.execute(select(User).where(User.id == pk))
         user = result.scalars().first()
         await session.refresh(user)
         if not user:
