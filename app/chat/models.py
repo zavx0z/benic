@@ -26,10 +26,12 @@
 
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
+from sqlalchemy import select, and_
 
 from shared import Base
+from shared.db import async_session
 
 
 class Message(Base):
@@ -60,6 +62,14 @@ class Dialog(Base):
     owner = relationship("User", back_populates="owner_dialogs")
     participants = relationship("DialogParticipant", back_populates="dialog")
     messages = relationship("Message", backref='dialog')
+
+    async def get_messages_count(self):
+        """Получение количества сообщений в диалоге"""
+        async with async_session() as session:
+            stmt = select(func.count(Message.id)).filter(Message.dialog_id == self.id)
+            result = await session.execute(stmt)
+            count = result.scalar_one()
+            return count
 
     def __str__(self):
         return f"{self.name}_{self.owner_id}"
