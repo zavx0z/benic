@@ -3,7 +3,7 @@ from urllib.parse import parse_qs
 from pydantic import BaseModel
 
 from auth import is_token_valid
-from chat.const import DIALOG_NAME, ADMIN_ID
+from chat.const import DIALOG_NAME, ADMIN_ID, ADMIN_ORIGIN
 from chat.crud.dialog import get_dialogs_by_user_id_and_name, create_dialog
 from chat.crud.message import create_message
 from chat.schema.clientresponse import ClientResponse
@@ -40,12 +40,18 @@ async def connect(sid, environ, auth):
     access_token = auth_header.split(' ')[1] if auth_header else None
     if is_token_valid(access_token):
         user = await get_user(user_id)
+
         print(f"connect {user.username}")
         await sio.save_session(sid, SessionUser(
             id=user.id,
             username=user.username,
             is_superuser=user.is_superuser
         ))
+
+        if user.is_superuser and not any(origin in environ.get("HTTP_ORIGIN") for origin in ADMIN_ORIGIN):
+            await sio.emit('error', {"message": "В чате диалоги только для клиентов.", "type": "warning"}, room=sid)
+            return
+
         dialogs = await get_dialogs_by_user_id_and_name(user_id, 'support')
         if not dialogs and not user.is_superuser:
             dialog = await create_dialog(DIALOG_NAME, user.id, [user.id, ADMIN_ID])
