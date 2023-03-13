@@ -40,6 +40,17 @@ pipeline {
             when { expression { return params.Refresh == true } }
             steps { echo("Ended pipeline early.") }
         }
+        stage('Остановка') {
+            when { expression { return params.Refresh == false } }
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
+                        remote.identityFile = sshKey
+                        sshCommand remote: remote, command: "docker-compose -f ${ROOT_APP_DIR}/docker-compose.yml stop"
+                    }
+                }
+            }
+        }
         stage('Удаление') {
             when { expression { return params.Refresh == false } }
             steps {
@@ -68,7 +79,6 @@ pipeline {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
                         remote.identityFile = sshKey
-                        sshCommand remote: remote, command: "docker-compose -f ${ROOT_APP_DIR}/docker-compose.yml down"
                         sshCommand remote: remote, command: "docker-compose -f ${ROOT_APP_DIR}/docker-compose.yml build"
                         sshCommand remote: remote, command: "docker-compose -f ${ROOT_APP_DIR}/docker-compose.yml up -d"
                     }
