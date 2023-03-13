@@ -22,7 +22,6 @@ pipeline {
         string( name: 'POSTGRES_PASSWORD', defaultValue: "12112022")
         string( name: 'JWT_SECRET_KEY', defaultValue: "adkngdfFDGSDFqhnlakjflorqirefOJ;SJDG")
         booleanParam(name: 'Refresh', defaultValue: false, description: 'Перезагрузка параметров')
-        booleanParam(name: 'Staging', defaultValue: false)
     }
     environment {
         ROOT_APP_DIR='/app'
