@@ -72,14 +72,35 @@ pipeline {
                 }
             }
         }
-        stage('Перезапуск') {
+        stage('Сборка') {
             when { expression { return params.Refresh == false } }
             steps {
                 script {
                     withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
                         remote.identityFile = sshKey
                         sshCommand remote: remote, command: "docker-compose -f ${ROOT_APP_DIR}/docker-compose.yml build"
+                    }
+                }
+            }
+        }
+        stage('Запуск') {
+            when { expression { return params.Refresh == false } }
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
+                        remote.identityFile = sshKey
                         sshCommand remote: remote, command: "docker-compose -f ${ROOT_APP_DIR}/docker-compose.yml up -d"
+                    }
+                }
+            }
+        }
+        stage('Вывод лога') {
+            when { expression { return params.Refresh == false } }
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
+                        remote.identityFile = sshKey
+                        sshCommand remote: remote, command: "docker logs app"
                     }
                 }
             }
