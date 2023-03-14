@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.models import User
-from auth.routes.login import create_access_token
+from auth.token import create_access_token
 from auth.schema import UserData
 from shared.db import get_db
 
@@ -44,8 +44,8 @@ async def register(item: Credentials, db=Depends(get_db), authjwt: AuthJWT = Dep
     if user:
         raise HTTPException(status_code=401, detail="already registered")
     user = await create_user(db, item.username, item.password)
-    access_token = create_access_token({"username": user.username}, authjwt)  # Генерируем токен авторизации
-    refresh_token = authjwt.create_refresh_token(subject=user.username)  # Генерируем токен обновления
+    access_token = create_access_token(user.id, authjwt)  # Генерируем токен авторизации
+    refresh_token = authjwt.create_refresh_token(subject=user.id)  # Генерируем токен обновления
     return UserData(
         id=user.id,
         username=user.username,

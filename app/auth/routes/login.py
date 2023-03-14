@@ -1,15 +1,12 @@
-from datetime import timedelta
-
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi_jwt_auth import AuthJWT
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
-from auth.schema import UserData
-from config import ACCESS_TOKEN_EXPIRE_MINUTES
 from auth.models import User
+from auth.token import create_access_token
+from auth.schema import UserData
 from shared.db import get_db
 
 router = APIRouter()
@@ -29,22 +26,6 @@ async def authenticate_user(username: str, password: str, db):
     return user
 
 
-def create_access_token(data: dict, authjwt: AuthJWT):
-    """Генерация токена авторизации"""
-    expires_delta = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = authjwt.create_access_token(subject=data["username"], expires_time=expires_delta)
-    # return {"access_token": access_token, "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60}
-    return access_token
-
-
-async def save_refresh_token(refresh_token: str, db: Session, user: User):
-    async with db.begin():  # Сохраняем токен обновления в базе данных
-        result = await db.execute(User.__table__.select().where(User.username == user.username))
-        user = result.fetchone()
-        user.refresh_token = refresh_token
-        await db.commit()
-
-
 class Request(BaseModel):
     username: str
     password: str
@@ -56,8 +37,8 @@ async def login(item: Request, db=Depends(get_db), authjwt: AuthJWT = Depends())
     user = await authenticate_user(item.username, item.password, db)
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect username or password")
-    access_token = create_access_token({"username": user.username}, authjwt)  # Генерируем токен авторизации
-    refresh_token = authjwt.create_refresh_token(subject=user.username)  # Генерируем токен обновления
+    access_token = create_access_token(user.id, authjwt)  # Генерируем токен авторизации
+    refresh_token = authjwt.create_refresh_token(subject=user.id)  # Генерируем токен обновления
     # save_refresh_token(refresh_token, db)
     return UserData(
         id=user.id,

@@ -4,6 +4,7 @@ from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import FreshTokenRequired
 from pydantic.main import BaseModel
 from sqlalchemy import select
+
 from auth.models import User
 from shared.db import get_db
 
@@ -20,13 +21,13 @@ async def get_user(authjwt: AuthJWT = Depends(), db=Depends(get_db)):
     """Получение информации о текущем пользователе"""
     try:
         authjwt.jwt_required()
-        username = authjwt.get_jwt_subject()
-        stmt = select(User).where(User.username == username)
+        pk = authjwt.get_jwt_subject()
+        stmt = select(User).where(User.id == pk)
         result = await db.execute(stmt)
         user = result.scalars().first()
         return ItemUser(
             id=user.id,
-            username=username
+            username=user.username
         )
     except FreshTokenRequired:
         return JSONResponse(
