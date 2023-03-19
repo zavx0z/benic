@@ -12,13 +12,29 @@ from shared.db import async_session
 
 
 async def get_user_dialog_statistics(user_id: int) -> List[DialogStatistic]:
-    """Получение статистики по диалогам, в которых состоит пользователь с заданным user_id"""
+    """Получение статистики по диалогам, в которых состоит пользователь с заданным user_id
+
+    Функция создает запрос к таблицам Dialog и MessageReaders,
+    объединяя их по полю dialog_id и фильтруя только те диалоги,
+    в которых есть сообщения, прочитанные пользователем с заданным user_id.
+    Затем производится группировка по полю dialog_id с подсчетом количества сообщений,
+    а также с подсчетом количества сообщений, которые еще не были прочитаны пользователем.
+    Полученный результат обрабатывается и преобразуется в список объектов класса DialogStatistic,
+    каждый из которых содержит информацию о диалоге и его статистику.
+
+    Args:
+        user_id: int - идентификатор пользователя
+
+    Returns:
+        List[DialogStatistic]: Список объектов класса DialogStatistic с информацией о диалогах пользователя
+
+    """
     async with async_session() as session:
         subquery = (
             select(
                 Message.dialog_id,
                 func.count(Message.id).label('unread_messages'))
-            .join(MessageReaders, and_(MessageReaders.message_id == Message.id, MessageReaders.user_id != user_id), isouter=True)
+            .join(MessageReaders, and_(MessageReaders.message_id == Message.id, MessageReaders.user_id != user_id))
             .where(Message.sender_id != user_id)
             .group_by(Message.dialog_id)
             .subquery()
