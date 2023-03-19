@@ -1,7 +1,6 @@
-from sqlalchemy import select, and_
-from sqlalchemy.orm import selectinload
+from sqlalchemy import select
 
-from chat.models import Message, Dialog, DialogParticipant
+from chat.models.message import Message
 from shared.db import async_session
 
 
@@ -15,9 +14,8 @@ async def create_message(text: str, sender_id: int, dialog_id: int):
     return message
 
 
-async def get_messages_for_dialog(dialog_id: int):
-    """Получение сообщений для диалога"""
+async def get_message_from_id(pk: int):
+    """Получение сообщения"""
     async with async_session() as session:
-        messages = await session.execute(select(Message).options(selectinload(Message.sender)).filter_by(dialog_id=dialog_id))
-        messages = messages.scalars().all()
-    return messages
+        message = await session.execute(select(Message).where(Message.id == pk)).scalar()
+    return message

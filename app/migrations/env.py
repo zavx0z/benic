@@ -10,7 +10,8 @@ from config import SQLALCHEMY_DATABASE_URL
 from shared import metadata
 from app.models import App, ServerAppAssociation
 from auth.models import User
-from chat.models import Dialog
+from chat.models.dialog import Dialog
+from chat.models.message import Message, MessageReaders
 from server.models import Server
 from task.models import Task
 from workspace.models import Workspace

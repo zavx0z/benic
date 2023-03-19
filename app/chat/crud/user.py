@@ -1,7 +1,7 @@
-from sqlalchemy.orm import selectinload
 from sqlalchemy import select
+
 from auth.models import User
-from chat.models import Message
+from chat.models.message import Message
 from shared.db import async_session
 
 

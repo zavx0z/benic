@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from chat.models import Dialog, DialogParticipant
+from chat.models.dialog import Dialog, DialogParticipant
 from shared.db import async_session
 
 
@@ -22,7 +22,14 @@ async def create_dialog(name: str, owner_id: int, participant_ids: [int], ):
 async def get_dialog_by_id(dialog_id: int):
     """Получение диалога по ID"""
     async with async_session() as session:
-        result = await session.execute(select(Dialog).filter_by(id=dialog_id).options(selectinload(Dialog.participants).selectinload(DialogParticipant.user)))
+        result = await session.execute(
+            select(Dialog)
+            .filter_by(id=dialog_id)
+            .options(
+                selectinload(Dialog.participants)
+                .selectinload(DialogParticipant.user)
+            )
+        )
         dialog = result.scalar_one_or_none()
         await session.close()
     return dialog
@@ -36,6 +43,20 @@ async def get_dialogs_by_user_id_and_name(user_id: int, dialog_name: str):
             .join(DialogParticipant)
             .filter(DialogParticipant.user_id == user_id)
             .filter(Dialog.name == dialog_name)
+            .options(selectinload(Dialog.participants).selectinload(DialogParticipant.user))
+        )
+        result = await session.execute(stmt)
+        dialogs = result.scalars().all()
+        return dialogs
+
+
+async def get_participant_dialogs(user_id: int):
+    """Получение всех диалогов пользователя где он является участником по ID пользователя"""
+    async with async_session() as session:
+        stmt = (
+            select(Dialog)
+            .join(DialogParticipant)
+            .filter(DialogParticipant.user_id == user_id)
             .options(selectinload(Dialog.participants).selectinload(DialogParticipant.user))
         )
         result = await session.execute(stmt)
