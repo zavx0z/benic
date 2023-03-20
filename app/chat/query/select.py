@@ -1,9 +1,11 @@
-from typing import List
+from typing import List, Dict
 
-from sqlalchemy import func, and_
+import numpy as np
+import pandas as pd
+from sqlalchemy import and_
 from sqlalchemy import select
 
-from chat.models.dialog import DialogParticipant, Dialog
+from chat.crud.dialog import get_dialog_last_message, get_unread_message_count_for_dialogs, get_all_message_count_for_dialogs, get_dialogs_by_user_id
 from chat.models.message import Message
 from chat.models.message import MessageReaders
 from chat.schema.dialog import DialogStatistic
@@ -11,54 +13,29 @@ from chat.schema.message import MessageResponse
 from shared.db import async_session
 
 
-async def get_user_dialog_statistics(user_id: int) -> List[DialogStatistic]:
-    """Получение статистики по диалогам, в которых состоит пользователь с заданным user_id
+async def get_user_dialog_statistics(user_id: int) -> List[Dict]:
+    """
+    Получает статистику диалогов пользователя.
 
-    Функция создает запрос к таблицам Dialog и MessageReaders,
-    объединяя их по полю dialog_id и фильтруя только те диалоги,
-    в которых есть сообщения, прочитанные пользователем с заданным user_id.
-    Затем производится группировка по полю dialog_id с подсчетом количества сообщений,
-    а также с подсчетом количества сообщений, которые еще не были прочитаны пользователем.
-    Полученный результат обрабатывается и преобразуется в список объектов класса DialogStatistic,
-    каждый из которых содержит информацию о диалоге и его статистику.
-
-    Args:
-        user_id: int - идентификатор пользователя
-
-    Returns:
-        List[DialogStatistic]: Список объектов класса DialogStatistic с информацией о диалогах пользователя
-
+    :param user_id: ID пользователя.
+    :return: Список объектов DialogStatistics.
     """
     async with async_session() as session:
-        subquery = (
-            select(
-                Message.dialog_id,
-                func.count(Message.id).label('unread_messages'))
-            .join(MessageReaders, and_(MessageReaders.message_id == Message.id, MessageReaders.user_id != user_id))
-            .where(Message.sender_id != user_id)
-            .group_by(Message.dialog_id)
-            .subquery()
-        )
-        counts = await session.execute(
-            select(
-                Dialog.id,
-                Dialog.name,
-                func.count(Message.id).label('total_messages'),
-                func.coalesce(subquery.c.unread_messages, 0).label('unread_messages')
-            )
-            .join(DialogParticipant, DialogParticipant.dialog_id == Dialog.id)
-            .join(Dialog.messages)
-            .outerjoin(subquery, subquery.c.dialog_id == Dialog.id)
-            .where(DialogParticipant.user_id == user_id)
-            .group_by(Dialog.id, subquery.c.unread_messages)
-        )
-        result = counts.fetchall()
-        return [DialogStatistic(
-            dialogId=dialog_id,
-            dialogName=dialog_name,
-            totalMessages=total_messages,
-            unreadMessages=unread_messages
-        ) for dialog_id, dialog_name, total_messages, unread_messages in result]
+        dialogs = await get_dialogs_by_user_id(session, user_id)
+        dialog_ids = [i[0] for i in dialogs]
+        all_messages_count = await get_all_message_count_for_dialogs(session, dialog_ids)
+        unread_messages_count = await get_unread_message_count_for_dialogs(session, dialog_ids, user_id)
+        last_messages = await get_dialog_last_message(session, dialog_ids)
+
+        dialogs = pd.DataFrame(dialogs, columns=['dialogId', 'ownerId', 'ownerName']).set_index('dialogId')
+        all_messages_count = pd.DataFrame(all_messages_count, columns=['dialogId', 'totalMessages']).set_index('dialogId')
+        unread_messages_count = pd.DataFrame(unread_messages_count, columns=['dialogId', 'unreadMessages']).set_index('dialogId')
+        last_messages = pd.DataFrame(last_messages, columns=['dialogId', 'lastMessageText', 'lastMessageTime']).set_index('dialogId')
+        last_messages.lastMessageTime = last_messages.lastMessageTime.apply(lambda value: value.isoformat())
+        result = pd.concat([dialogs, all_messages_count, unread_messages_count, last_messages], axis=1)
+        result.reset_index(inplace=True)
+        result.replace(np.nan, None, inplace=True)
+        return result.to_dict(orient='records')
 
 
 async def get_messages_for_dialog(dialog_id: int, user_id: int):
@@ -73,7 +50,7 @@ async def get_messages_for_dialog(dialog_id: int, user_id: int):
      - В противном случае сообщение не было прочитано.
     """
     async with async_session() as session:
-        stmt = (
+        result = await session.execute(
             select(Message.id,
                    Message.text,
                    Message.created_at,
@@ -83,12 +60,10 @@ async def get_messages_for_dialog(dialog_id: int, user_id: int):
             .filter(Message.dialog_id == dialog_id)
             .order_by(Message.created_at)
         )
-        result = await session.execute(stmt)
-        messages = result.fetchall()
         return [MessageResponse(
             id=m.id,
             senderId=m.sender_id,
             created=m.created_at.isoformat(),
             text=m.text,
             read=bool(m.read_time is not None and m.sender_id != user_id)
-        ) for m in messages]
+        ) for m in result]

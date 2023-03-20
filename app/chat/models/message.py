@@ -9,6 +9,9 @@ from shared import Base
 
 
 class Message(Base):
+    """
+
+    """
     __tablename__ = "message"
     id = Column(Integer, primary_key=True)
     text = Column(String(length=1000), nullable=False)

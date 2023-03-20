@@ -6,3 +6,10 @@ class DialogStatistic(BaseModel):
     dialogName: str
     totalMessages: int
     unreadMessages: int
+    ownerId: int
+    ownerName: str
+    lastMessageText: str
+    lastMessageTime: str
+
+
+

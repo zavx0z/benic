@@ -1,7 +1,14 @@
-from sqlalchemy import select
+from operator import and_
+from typing import List, Tuple
+
+from pydantic import BaseModel
+from sqlalchemy import select, func
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from auth.models import User
 from chat.models.dialog import Dialog, DialogParticipant
+from chat.models.message import Message, MessageReaders
 from shared.db import async_session
 
 
@@ -50,6 +57,15 @@ async def get_dialogs_by_user_id_and_name(user_id: int, dialog_name: str):
         return dialogs
 
 
+class DialogDB(BaseModel):
+    dialog_id: int
+    owner_id: int
+    username: str
+
+    class Config:
+        orm_mode = True
+
+
 async def get_participant_dialogs(user_id: int):
     """Получение всех диалогов пользователя где он является участником по ID пользователя"""
     async with async_session() as session:
@@ -57,8 +73,78 @@ async def get_participant_dialogs(user_id: int):
             select(Dialog)
             .join(DialogParticipant)
             .filter(DialogParticipant.user_id == user_id)
-            .options(selectinload(Dialog.participants).selectinload(DialogParticipant.user))
+            .options(
+                selectinload(Dialog.participants)
+                .selectinload(DialogParticipant.user)
+            )
         )
         result = await session.execute(stmt)
         dialogs = result.scalars().all()
         return dialogs
+
+
+async def get_dialogs_by_user_id(session: AsyncSession, user_id: int) -> List[Tuple[int, int, str]]:
+    """Получение диалогов по ID пользователя"""
+    result = await session.execute(
+        select(
+            Dialog.id,
+            Dialog.owner_id,
+            User.username
+        )
+        .join(User, Dialog.owner_id == User.id)
+        .join(DialogParticipant, DialogParticipant.user_id == user_id)
+        .group_by(Dialog.id, User.username)
+    )
+    return result.fetchall()
+
+
+async def get_dialog_last_message(session: AsyncSession, dialog_ids: List[int]):
+    subquery = (
+        select(
+            Message.dialog_id,
+            func.max(Message.created_at).label('max_created_at')
+        )
+        .filter(Message.dialog_id.in_(dialog_ids))
+        .group_by(Message.dialog_id)
+        .subquery()
+    )
+    result = await session.execute(
+        select(
+            Message.dialog_id,
+            Message.text,
+            Message.created_at
+        )
+        .join(subquery, and_(
+            Message.dialog_id == subquery.c.dialog_id,
+            Message.created_at == subquery.c.max_created_at
+        ))
+        .filter(Message.dialog_id.in_(dialog_ids))
+    )
+    return result.fetchall()
+
+
+async def get_all_message_count_for_dialogs(session: AsyncSession, dialog_ids: List[int]) -> List[Tuple[int, int]]:
+    result = await session.execute(
+        select(
+            Message.dialog_id,
+            func.count(Message.id)
+        )
+        .filter(Message.dialog_id.in_(dialog_ids))
+        .group_by(Message.dialog_id)
+    )
+    return result.fetchall()
+
+
+async def get_unread_message_count_for_dialogs(session: AsyncSession, dialog_ids: List[int], user_id: int) -> List[Tuple[int, int]]:
+    result = await session.execute(
+        select(
+            Message.dialog_id,
+            func.count(MessageReaders.user_id)
+        )
+        .join(MessageReaders)
+        .filter(Message.dialog_id.in_(dialog_ids))
+        .filter(Message.sender_id != user_id)
+        .filter(MessageReaders.user_id != user_id)
+        .group_by(Message.dialog_id)
+    )
+    return result.fetchall()

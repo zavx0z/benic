@@ -1,5 +1,7 @@
 from typing import Optional, Union
+
 from pydantic import BaseModel
+
 from chat.const import DIALOG_NAME
 from chat.crud.dialog import get_dialogs_by_user_id_and_name
 from chat.crud.message import create_message
@@ -46,7 +48,7 @@ async def read_message(sid: str, payload: Chat):
         result = await get_user_dialog_statistics(user.id)
         await sio.emit('chat', {
             "action": 'init',
-            "data": [dict(item) for item in result]
+            "data": result
         }, room=sid)
     elif payload.action == 'messages':
         result = await get_messages_for_dialog(payload.data, user.id)
