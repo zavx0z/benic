@@ -48,7 +48,7 @@ async def read_message(sid: str, payload: Chat):
         result = await get_user_dialog_statistics(user.id)
         await sio.emit('chat', {
             "action": 'init',
-            "data": result
+            "data": [dict(item) for item in result]
         }, room=sid)
     elif payload.action == 'messages':
         result = await get_messages_for_dialog(payload.data, user.id)

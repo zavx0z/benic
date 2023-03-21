@@ -88,6 +88,7 @@ async def get_dialogs_by_user_id(session: AsyncSession, user_id: int) -> List[Tu
     result = await session.execute(
         select(
             Dialog.id,
+            Dialog.name,
             Dialog.owner_id,
             User.username
         )

@@ -10,6 +10,7 @@ class DialogStatistic(BaseModel):
     ownerName: str
     lastMessageText: str
     lastMessageTime: str
+    # lastMessageSenderId: int
 
 
 

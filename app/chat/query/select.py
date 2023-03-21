@@ -1,11 +1,9 @@
-from typing import List, Dict
+from typing import List
 
-import numpy as np
-import pandas as pd
-from sqlalchemy import and_
-from sqlalchemy import select
+from sqlalchemy import func, select, text, and_
 
-from chat.crud.dialog import get_dialog_last_message, get_unread_message_count_for_dialogs, get_all_message_count_for_dialogs, get_dialogs_by_user_id
+from auth.models import User
+from chat.models.dialog import Dialog, DialogParticipant
 from chat.models.message import Message
 from chat.models.message import MessageReaders
 from chat.schema.dialog import DialogStatistic
@@ -13,29 +11,85 @@ from chat.schema.message import MessageResponse
 from shared.db import async_session
 
 
-async def get_user_dialog_statistics(user_id: int) -> List[Dict]:
-    """
-    Получает статистику диалогов пользователя.
-
-    :param user_id: ID пользователя.
-    :return: Список объектов DialogStatistics.
-    """
+async def get_user_dialog_statistics(user_id: int) -> List[DialogStatistic]:
     async with async_session() as session:
-        dialogs = await get_dialogs_by_user_id(session, user_id)
-        dialog_ids = [i[0] for i in dialogs]
-        all_messages_count = await get_all_message_count_for_dialogs(session, dialog_ids)
-        unread_messages_count = await get_unread_message_count_for_dialogs(session, dialog_ids, user_id)
-        last_messages = await get_dialog_last_message(session, dialog_ids)
-
-        dialogs = pd.DataFrame(dialogs, columns=['dialogId', 'ownerId', 'ownerName']).set_index('dialogId')
-        all_messages_count = pd.DataFrame(all_messages_count, columns=['dialogId', 'totalMessages']).set_index('dialogId')
-        unread_messages_count = pd.DataFrame(unread_messages_count, columns=['dialogId', 'unreadMessages']).set_index('dialogId')
-        last_messages = pd.DataFrame(last_messages, columns=['dialogId', 'lastMessageText', 'lastMessageTime']).set_index('dialogId')
-        last_messages.lastMessageTime = last_messages.lastMessageTime.apply(lambda value: value.isoformat())
-        result = pd.concat([dialogs, all_messages_count, unread_messages_count, last_messages], axis=1)
-        result.reset_index(inplace=True)
-        result.replace(np.nan, None, inplace=True)
-        return result.to_dict(orient='records')
+        subquery_all_messages = (
+            select(
+                Message.dialog_id,
+                func.count(Message.id).over(partition_by=Message.dialog_id).label('count'),
+            )
+            .where(Message.dialog_id.in_(select(DialogParticipant.dialog_id).where(DialogParticipant.user_id == user_id)))
+            .alias('all_messages_subquery')
+        )
+        subquery_unread_messages = (
+            select(
+                Message.dialog_id,
+                func.count(Message.id).over(partition_by=Message.dialog_id).label('count')
+            )
+            .where(Message.sender_id != user_id)
+            .where(Message.id.notin_(select(MessageReaders.message_id).where(MessageReaders.user_id == user_id)))
+            .where(Message.dialog_id.in_(select(DialogParticipant.dialog_id).where(DialogParticipant.user_id == user_id)))
+            .alias('unread_messages_subquery')
+        )
+        subquery_last_message = (
+            select(
+                Message.dialog_id,
+                Message.text,
+                Message.created_at,
+                func.row_number().over(partition_by=Message.dialog_id, order_by=Message.created_at.desc()).label('row_num')
+            )
+            .where(Message.dialog_id.in_(select(DialogParticipant.dialog_id).where(DialogParticipant.user_id == user_id)))
+            .alias('last_message_subquery')
+        )
+        subquery_dialogs = (
+            select(
+                Dialog.id,
+                Dialog.name,
+                Dialog.owner_id,
+                User.username,
+                subquery_all_messages.c.count.label('all_messages_count'),
+                subquery_unread_messages.c.count.label('unread_messages_count'),
+                subquery_last_message.c.text.label('last_message_text'),
+                subquery_last_message.c.created_at.label('last_message_time')
+            )
+            .select_from(Dialog)
+            .join(User, User.id == Dialog.owner_id)
+            .join(subquery_all_messages, subquery_all_messages.c.dialog_id == Dialog.id)
+            .join(subquery_unread_messages, subquery_unread_messages.c.dialog_id == Dialog.id)
+            .join(subquery_last_message, text('last_message_subquery.row_num = 1 and last_message_subquery.dialog_id = dialog.id'))
+            .where(Dialog.id.in_(select(DialogParticipant.dialog_id).where(DialogParticipant.user_id == user_id)))
+            .group_by(
+                Dialog.id,
+                User.username,
+                subquery_all_messages.c.count,
+                subquery_unread_messages.c.count,
+                subquery_last_message.c.text,
+                subquery_last_message.c.created_at
+            )
+            .alias('dialog_subquery')
+        )
+        query = select(
+            subquery_dialogs.c.id.label('dialog_id'),
+            subquery_dialogs.c.name.label('dialog_name'),
+            subquery_dialogs.c.owner_id,
+            subquery_dialogs.c.username.label('owner_name'),
+            subquery_dialogs.c.all_messages_count,
+            subquery_dialogs.c.unread_messages_count,
+            subquery_dialogs.c.last_message_text,
+            subquery_dialogs.c.last_message_time
+        )
+        rows = await session.execute(query)
+        result = rows.fetchall()
+        return [DialogStatistic(
+            dialogId=row[0],
+            dialogName=row[1],
+            ownerId=row[2],
+            ownerName=row[3],
+            totalMessages=row[4],
+            unreadMessages=row[5],
+            lastMessageText=row[6],
+            lastMessageTime=row[7].isoformat() if row[7] else None,
+        ) for row in result]
 
 
 async def get_messages_for_dialog(dialog_id: int, user_id: int):
