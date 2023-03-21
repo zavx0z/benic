@@ -36,7 +36,7 @@ async def get_messages_for_dialog(dialog_id: int, user_id: int):
             senderId=m.sender_id,
             created=m.created_at.isoformat(),
             text=m.text,
-            read=bool(m.read_time is not None and m.sender_id == user_id)
+            read=bool(m.read_time is not None)
         ) for m in result]
 
 

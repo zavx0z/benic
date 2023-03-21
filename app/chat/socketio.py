@@ -70,7 +70,6 @@ async def read_message(sid: str, payload: Chat):
             "data": [dict(item) for item in result]
         }, room=sid)
     elif payload.action == 'read':
-        print('read')
         dialog_id = payload.data.get('dialogId')
         message_ids = payload.data.get('messageIds')
         added_ids = await set_messages_read(user.id, message_ids)
@@ -78,7 +77,7 @@ async def read_message(sid: str, payload: Chat):
             await sio.emit('chat', {
                 "action": payload.action,
                 "data": {"dialogId": dialog_id, "messageIds": message_ids}
-            }, room=[dialog_id])
+            }, room=sid)
     elif payload.action == 'users':
         result = await get_users(payload.data)
         await sio.emit('users', [dict(item) for item in result], room=sid)
