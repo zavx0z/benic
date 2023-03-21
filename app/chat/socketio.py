@@ -70,11 +70,12 @@ async def read_message(sid: str, payload: Chat):
             "data": [dict(item) for item in result]
         }, room=sid)
     elif payload.action == 'read':
+        print('read')
         dialog_id = payload.data.get('dialogId')
         message_ids = payload.data.get('messageIds')
         added_ids = await set_messages_read(user.id, message_ids)
         if len(added_ids):
-            sio.emit('chat', {
+            await sio.emit('chat', {
                 "action": payload.action,
                 "data": {"dialogId": dialog_id, "messageIds": message_ids}
             }, room=[dialog_id])

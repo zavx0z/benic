@@ -71,8 +71,8 @@ async def get_user_dialog_statistics(user_id: int) -> List[DialogStatistic]:
                 last_message.c.sender_id.label('last_message_sender_id'),
             )
             .join(all_messages, all_messages.c.dialog_id == Dialog.id)
-            .join(unread_messages, unread_messages.c.dialog_id == Dialog.id)
-            .join(last_message, and_(last_message.c.dialog_id == Dialog.id, last_message.c.row_num == 1))
+            .join(unread_messages, unread_messages.c.dialog_id == Dialog.id, isouter=True)
+            .join(last_message, and_(last_message.c.dialog_id == Dialog.id, last_message.c.row_num == 1), isouter=True)
             .where(Dialog.id.in_(select(DialogParticipant.dialog_id).where(DialogParticipant.user_id == user_id)))
             .group_by(
                 Dialog.id,
@@ -100,7 +100,7 @@ async def get_user_dialog_statistics(user_id: int) -> List[DialogStatistic]:
             name=row.dialog_name,
             ownerId=row.owner_id,
             totalMessages=row.all_messages_count,
-            unreadMessages=row.unread_messages_count,
+            unreadMessages=row.unread_messages_count if row.unread_messages_count else 0,
             lastMessageText=row.last_message_text,
             lastMessageTime=row.last_message_time.isoformat() if row.last_message_time else None,
             lastMessageSenderId=row.last_message_sender_id,
