@@ -22,15 +22,13 @@ async def get_messages_for_dialog(dialog_id: int, user_id: int):
     """
     async with async_session() as session:
         result = await session.execute(
-            select(
-                Message.id,
-                Message.text,
-                Message.created_at,
-                Message.sender_id,
-                MessageReaders.read_time
-            )
-            .join(MessageReaders, and_(Message.id == MessageReaders.message_id, MessageReaders.user_id == user_id), isouter=True)
-            .where(Message.dialog_id == dialog_id)
+            select(Message.id,
+                   Message.text,
+                   Message.created_at,
+                   Message.sender_id,
+                   MessageReaders.read_time)
+            .join(MessageReaders, and_(Message.id == MessageReaders.message_id, MessageReaders.user_id != user_id), isouter=True)
+            .filter(Message.dialog_id == dialog_id)
             .order_by(Message.created_at)
         )
         return [MessageResponse(
@@ -38,7 +36,7 @@ async def get_messages_for_dialog(dialog_id: int, user_id: int):
             senderId=m.sender_id,
             created=m.created_at.isoformat(),
             text=m.text,
-            read=bool(m.read_time is not None and m.sender_id != user_id)
+            read=bool(m.read_time is not None and m.sender_id == user_id)
         ) for m in result]
 
 

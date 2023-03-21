@@ -36,11 +36,6 @@ async def handle_message(sid: str, data: MessageRequest):
     )), room=dialog.id)
 
 
-class Chat(BaseModel):
-    action: str
-    data: Optional[Union[dict, int, list]]
-
-
 @sio.on('subscribeDialog')
 async def subscribe_dialog(sid: str, dialog_id: int):  # todo: передавать id последнего сообщения
     dialog_room = f"dialog_{dialog_id}"
@@ -59,6 +54,11 @@ async def subscribe_dialog(sid: str, dialog_id: int):
     sio.leave_room(sid, dialog_room)
 
 
+class Chat(BaseModel):
+    action: str
+    data: Optional[Union[dict, int, list]]
+
+
 @sio.on('chat')
 async def read_message(sid: str, payload: Chat):
     user = await sio.get_session(sid)
@@ -69,16 +69,13 @@ async def read_message(sid: str, payload: Chat):
             "action": 'init',
             "data": [dict(item) for item in result]
         }, room=sid)
-    elif payload.action == 'messages':
-        result = await get_messages_for_dialog(payload.data, user.id)
-        await sio.emit('chat', {'action': payload.action, "data": [dict(item) for item in result]})
     elif payload.action == 'read':
         dialog_id = payload.data.get('dialogId')
         message_ids = payload.data.get('messageIds')
         added_ids = await set_messages_read(user.id, message_ids)
         if len(added_ids):
             sio.emit('chat', {
-                "action": 'read',
+                "action": payload.action,
                 "data": {"dialogId": dialog_id, "messageIds": message_ids}
             }, room=[dialog_id])
     elif payload.action == 'users':
