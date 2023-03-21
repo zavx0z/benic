@@ -6,7 +6,8 @@ from chat.const import DIALOG_NAME
 from chat.crud.dialog import get_dialogs_by_user_id_and_name
 from chat.crud.message import create_message
 from chat.query.insert import set_messages_read
-from chat.query.select import get_user_dialog_statistics, get_messages_for_dialog
+from chat.query.select import get_messages_for_dialog
+from chat.query.dialogs_statistics import get_user_dialog_statistics
 from chat.schema import MessageRequest
 from chat.schema.clientresponse import ClientResponse
 from chat.schema.message import MessageResponse
