@@ -1,7 +1,10 @@
+from typing import List
+
+from pydantic import BaseModel
 from sqlalchemy import select, and_
 
-from chat.models.message import Message
-from chat.models.message import MessageReaders
+from auth.models import User
+from chat.models.message import Message, MessageReaders
 from chat.schema.message import MessageResponse
 from shared.db import async_session
 
@@ -19,13 +22,15 @@ async def get_messages_for_dialog(dialog_id: int, user_id: int):
     """
     async with async_session() as session:
         result = await session.execute(
-            select(Message.id,
-                   Message.text,
-                   Message.created_at,
-                   Message.sender_id,
-                   MessageReaders.read_time)
+            select(
+                Message.id,
+                Message.text,
+                Message.created_at,
+                Message.sender_id,
+                MessageReaders.read_time
+            )
             .join(MessageReaders, and_(Message.id == MessageReaders.message_id, MessageReaders.user_id == user_id), isouter=True)
-            .filter(Message.dialog_id == dialog_id)
+            .where(Message.dialog_id == dialog_id)
             .order_by(Message.created_at)
         )
         return [MessageResponse(
@@ -35,3 +40,22 @@ async def get_messages_for_dialog(dialog_id: int, user_id: int):
             text=m.text,
             read=bool(m.read_time is not None and m.sender_id != user_id)
         ) for m in result]
+
+
+class UserChat(BaseModel):
+    id: int
+    name: str
+
+
+async def get_users(user_idx: List[int]):
+    """Получение пользователей
+    """
+    async with async_session() as session:
+        result = await session.execute(
+            select(
+                User.id,
+                User.username,
+            )
+            .where(User.id.in_(user_idx))
+        )
+    return [UserChat(id=i.id, name=i.username) for i in result.fetchall()]

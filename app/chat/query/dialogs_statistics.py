@@ -1,11 +1,14 @@
 from typing import List
+
 from sqlalchemy import select, func, and_
+
 from chat.models.dialog import Dialog, DialogParticipant
 from chat.models.message import Message, MessageReaders
 from chat.schema.dialog import DialogStatistic
 from shared.db import async_session
 
 
+# todo добавить свой диалог тоже
 async def get_user_dialog_statistics(user_id: int) -> List[DialogStatistic]:
     """Получение статистики по диалогам пользователя.
 

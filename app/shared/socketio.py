@@ -42,7 +42,7 @@ async def connect(sid, environ, auth):
     :type sid: str
     """
 
-    access_token = await get_access_token(auth, environ)
+    access_token = await get_access_token(sid, auth, environ)
     user = await get_authenticated_user(access_token, sid)
     if user:
         await save_user_to_session(user, sid)
@@ -53,7 +53,7 @@ async def connect(sid, environ, auth):
         print(f"not auth {sid}")
 
 
-async def get_access_token(auth, environ):
+async def get_access_token(sid, auth, environ):
     """Получает токен доступа из авторизации клиента."""
     if auth:
         access_token = auth.get('token')

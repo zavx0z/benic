@@ -5,9 +5,9 @@ from pydantic import BaseModel
 from chat.const import DIALOG_NAME
 from chat.crud.dialog import get_dialogs_by_user_id_and_name
 from chat.crud.message import create_message
-from chat.query.insert import set_messages_read
-from chat.query.select import get_messages_for_dialog
 from chat.query.dialogs_statistics import get_user_dialog_statistics
+from chat.query.insert import set_messages_read
+from chat.query.select import get_messages_for_dialog, get_users
 from chat.schema import MessageRequest
 from chat.schema.clientresponse import ClientResponse
 from chat.schema.message import MessageResponse
@@ -41,6 +41,24 @@ class Chat(BaseModel):
     data: Optional[Union[dict, int, list]]
 
 
+@sio.on('subscribeDialog')
+async def subscribe_dialog(sid: str, dialog_id: int):  # todo: передавать id последнего сообщения
+    dialog_room = f"dialog_{dialog_id}"
+    user = await sio.get_session(sid)
+    print(f"Пользователь {user.username} в диалоге {dialog_room}")
+    sio.enter_room(sid, dialog_room)
+    messages = await get_messages_for_dialog(dialog_id, user.id)
+    await sio.emit('subscribeDialog', {"dialogId": dialog_id, "messages": [dict(i) for i in messages]}, room=dialog_room)
+
+
+@sio.on('unSubscribeDialog')
+async def subscribe_dialog(sid: str, dialog_id: int):
+    dialog_room = f"dialog_{dialog_id}"
+    user = await sio.get_session(sid)
+    print(f"Пользователь {user.username} покинул диалог {dialog_room}")
+    sio.leave_room(sid, dialog_room)
+
+
 @sio.on('chat')
 async def read_message(sid: str, payload: Chat):
     user = await sio.get_session(sid)
@@ -53,10 +71,7 @@ async def read_message(sid: str, payload: Chat):
         }, room=sid)
     elif payload.action == 'messages':
         result = await get_messages_for_dialog(payload.data, user.id)
-        await sio.emit('chat', {
-            "action": 'messages',
-            "data": [dict(item) for item in result]
-        })
+        await sio.emit('chat', {'action': payload.action, "data": [dict(item) for item in result]})
     elif payload.action == 'read':
         dialog_id = payload.data.get('dialogId')
         message_ids = payload.data.get('messageIds')
@@ -66,6 +81,9 @@ async def read_message(sid: str, payload: Chat):
                 "action": 'read',
                 "data": {"dialogId": dialog_id, "messageIds": message_ids}
             }, room=[dialog_id])
+    elif payload.action == 'users':
+        result = await get_users(payload.data)
+        await sio.emit('users', [dict(item) for item in result], room=sid)
 
 
 @sio.on("joinDialog")
