@@ -2,7 +2,6 @@ from typing import List
 
 from sqlalchemy import func, select, and_
 
-from auth.models import User
 from chat.models.dialog import Dialog, DialogParticipant
 from chat.models.message import Message
 from chat.models.message import MessageReaders
@@ -30,56 +29,55 @@ async def get_user_dialog_statistics(user_id: int) -> List[DialogStatistic]:
         last_message = (  # последнее сообщение для каждого диалога
             select(
                 Message.dialog_id,
+                Message.sender_id,
                 Message.text,
                 Message.created_at,
-                func.row_number().over(partition_by=Message.dialog_id, order_by=Message.created_at.desc()).label('row_num')
+                func.row_number().over(partition_by=Message.dialog_id, order_by=Message.created_at.desc()).label('row_num'),
             )
         ).alias('last_message')
-        subquery_dialogs = (  # объединяет данные из трех подзапросов и получает статистику по каждому диалогу
+        dialogs = (  # объединяет данные из трех подзапросов и получает статистику по каждому диалогу
             select(
                 Dialog.id,
                 Dialog.name,
                 Dialog.owner_id,
-                User.username,
                 all_messages.c.count.label('all_messages_count'),
                 unread_messages.c.count.label('unread_messages_count'),
                 last_message.c.text.label('last_message_text'),
-                last_message.c.created_at.label('last_message_time')
+                last_message.c.created_at.label('last_message_time'),
+                last_message.c.sender_id.label('last_message_sender_id'),
             )
-            .join(User, User.id == Dialog.owner_id)
             .join(all_messages, all_messages.c.dialog_id == Dialog.id)
             .join(unread_messages, unread_messages.c.dialog_id == Dialog.id)
             .join(last_message, and_(last_message.c.dialog_id == Dialog.id, last_message.c.row_num == 1))
             .where(Dialog.id.in_(select(DialogParticipant.dialog_id).where(DialogParticipant.user_id == user_id)))
             .group_by(
                 Dialog.id,
-                User.username,
                 all_messages.c.count,
                 unread_messages.c.count,
                 last_message.c.text,
-                last_message.c.created_at
+                last_message.c.created_at,
+                last_message.c.sender_id
             )
         ).alias('dialog')
-        query = select(
-            subquery_dialogs.c.id.label('dialog_id'),
-            subquery_dialogs.c.name.label('dialog_name'),
-            subquery_dialogs.c.owner_id,
-            subquery_dialogs.c.username.label('owner_name'),
-            subquery_dialogs.c.all_messages_count,
-            subquery_dialogs.c.unread_messages_count,
-            subquery_dialogs.c.last_message_text,
-            subquery_dialogs.c.last_message_time
-        )
-        result = await session.execute(query)
+        result = await session.execute(select(
+            dialogs.c.id.label('dialog_id'),
+            dialogs.c.name.label('dialog_name'),
+            dialogs.c.owner_id,
+            dialogs.c.all_messages_count,
+            dialogs.c.unread_messages_count,
+            dialogs.c.last_message_text,
+            dialogs.c.last_message_time,
+            dialogs.c.last_message_sender_id
+        ))
         return [DialogStatistic(
-            dialogId=row[0],
-            dialogName=row[1],
-            ownerId=row[2],
-            ownerName=row[3],
-            totalMessages=row[4],
-            unreadMessages=row[5],
-            lastMessageText=row[6],
-            lastMessageTime=row[7].isoformat() if row[7] else None,
+            dialogId=row.dialog_id,
+            dialogName=row.dialog_name,
+            ownerId=row.owner_id,
+            totalMessages=row.all_messages_count,
+            unreadMessages=row.unread_messages_count,
+            lastMessageText=row.last_message_text,
+            lastMessageTime=row.last_message_time.isoformat() if row.last_message_time else None,
+            lastMessageSenderId=row.last_message_sender_id,
         ) for row in result.fetchall()]
 
 

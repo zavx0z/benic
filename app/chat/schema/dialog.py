@@ -7,10 +7,9 @@ class DialogStatistic(BaseModel):
     totalMessages: int
     unreadMessages: int
     ownerId: int
-    ownerName: str
     lastMessageText: str
     lastMessageTime: str
-    # lastMessageSenderId: int
+    lastMessageSenderId: int
 
 
 
