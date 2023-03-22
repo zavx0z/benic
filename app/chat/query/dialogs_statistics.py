@@ -59,7 +59,7 @@ async def get_user_dialog_statistics(user_id: int) -> List[DialogStatistic]:
         - Ограничивает результат только диалогами, в которых участвует пользователь.        
         - Группируется по Dialog.id, чтобы получить уникальную статистику для каждого диалога.
         """
-        dialogs = (  #
+        dialogs = (
             select(
                 Dialog.id,
                 Dialog.name,

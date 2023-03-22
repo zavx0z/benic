@@ -14,3 +14,9 @@ if os.getenv('DEVELOP'):
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'secret')
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 4
 SQLALCHEMY_DATABASE_URL = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+
+ADMIN_ID = 1
+ADMIN_ORIGIN = [
+    'http://localhost:3001',
+    'https://admin-botswork.web.app'
+]

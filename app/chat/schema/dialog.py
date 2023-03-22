@@ -21,3 +21,15 @@ class DialogStatistic(BaseModel):
     lastMessageText: str
     lastMessageTime: str
     lastMessageSenderId: int
+
+
+class DialogChatDB(BaseModel):
+    """ Модель для представления в чате.
+
+    :param int id: ID диалога.
+    :param str name: Название диалога.
+    :param int ownerId: ID владельца диалога.
+    """
+    id: int
+    name: str
+    ownerId: int

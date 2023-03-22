@@ -9,7 +9,17 @@ from sqlalchemy.orm import selectinload
 from auth.models import User
 from chat.models.dialog import Dialog, DialogParticipant
 from chat.models.message import Message, MessageReaders
+from chat.schema.dialog import DialogChatDB
 from shared.db import async_session
+
+
+async def get_messages_count(dialog_id):
+    """Получение количества сообщений в диалоге"""
+    async with async_session() as session:
+        stmt = select(func.count(Message.id)).filter(Message.dialog_id == dialog_id)
+        result = await session.execute(stmt)
+        count = result.scalar_one()
+        return count
 
 
 async def create_dialog(name: str, owner_id: int, participant_ids: [int], ):
@@ -26,7 +36,7 @@ async def create_dialog(name: str, owner_id: int, participant_ids: [int], ):
     return dialog
 
 
-async def get_dialog_by_id(dialog_id: int):
+async def get_dialog_by_id(dialog_id: int) -> DialogChatDB:
     """Получение диалога по ID"""
     async with async_session() as session:
         result = await session.execute(
@@ -37,9 +47,8 @@ async def get_dialog_by_id(dialog_id: int):
                 .selectinload(DialogParticipant.user)
             )
         )
-        dialog = result.scalar_one_or_none()
-        await session.close()
-    return dialog
+        dialog = result.scalar_one()
+        return DialogChatDB(id=dialog.id, name=dialog.name, ownerId=dialog.owner_id)
 
 
 async def get_dialogs_by_user_id_and_name(user_id: int, dialog_name: str):

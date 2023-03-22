@@ -1,7 +1,8 @@
 import socketio
 
 from auth.token import get_jwt_subject
-from chat.const import DIALOG_NAME, ADMIN_ORIGIN, ADMIN_ID
+from config import ADMIN_ID, ADMIN_ORIGIN
+from chat.channerls import CHANNEL_SUPPORT
 from chat.crud.dialog import get_dialogs_by_user_id_and_name, create_dialog
 from chat.schema import SessionUser
 from shared.crud import get_user
@@ -14,10 +15,10 @@ sio_app = socketio.ASGIApp(sio)
 async def disconnect(sid, *args, **kwargs):
     user = await sio.get_session(sid)
     if user:
-        dialogs = await get_dialogs_by_user_id_and_name(user.id, DIALOG_NAME)
+        dialogs = await get_dialogs_by_user_id_and_name(user.id, CHANNEL_SUPPORT)
         for dialog in dialogs:
             sio.leave_room(sid, dialog.id)
-    print(f"disconnect {sid}")
+    print(f"disconnect {user.username}")
 
 
 @sio.on('*')
@@ -101,7 +102,7 @@ async def join_user_dialogs(user, sid):
     """
     dialogs = await get_dialogs_by_user_id_and_name(user.id, 'support')
     if not dialogs and not user.is_superuser:
-        dialog = await create_dialog(DIALOG_NAME, user.id, [user.id, ADMIN_ID])
+        dialog = await create_dialog(CHANNEL_SUPPORT, user.id, [user.id, ADMIN_ID])
         dialogs = [dialog]
     for dialog in dialogs:
         print(f"{user.username} enter dialog {dialog.id}")

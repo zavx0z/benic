@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy import select, and_
 
 from auth.models import User
+from chat.models.dialog import DialogParticipant
 from chat.models.message import Message, MessageReaders
 from chat.schema.message import MessageResponse
 from shared.db import async_session
@@ -57,3 +58,17 @@ async def get_users(user_idx: List[int]):
             .where(User.id.in_(user_idx))
         )
     return [UserChat(id=i.id, name=i.username) for i in result.fetchall()]
+
+
+async def get_users_by_dialog_ids(dialog_ids: List[int]) -> List[UserChat]:
+    async with async_session() as session:
+        result = await session.execute(
+            select(
+                User.id,
+                User.username
+            )
+            .join(DialogParticipant)
+            .where(DialogParticipant.dialog_id.in_(dialog_ids))
+            .distinct(User.id)
+        )
+        return [UserChat(id=i.id, name=i.username) for i in result.fetchall()]
