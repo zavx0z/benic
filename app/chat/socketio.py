@@ -122,7 +122,12 @@ async def channel_dialog(sid: str, payload: ChatPayload):  # todo: переда�
         sio.leave_room(sid, dialog_room)
     elif payload.action == READ:
         dialog_room = ROOM_CHANNEL_DIALOG(payload.data.get('dialogId'))
-        count = await dialog_read(sid, payload.data.get('dialogId'), payload.data.get('messageIds'))
+        count = await dialog_read(
+            sid=sid,
+            user_id=user.id,
+            dialog_id=payload.data.get('dialogId'),
+            message_ids=payload.data.get('messageIds')
+        )
         count and format_log(payload.action, dialog_room, user.username, param_action=count)
     elif payload.action == WRITE:
         dialog_id = payload.data.get('dialogId')

@@ -1,7 +1,7 @@
-fastapi==0.94.0
-pydantic~=1.10.5
-uvicorn[standard]
-python-socketio~=5.7.2
+fastapi==0.95.0
+pydantic==1.10.7
+uvicorn[standard]==0.21.1
+python-socketio==5.8.0
 
 SQLAlchemy~=2.0.4
 asyncpg~=0.27.0
