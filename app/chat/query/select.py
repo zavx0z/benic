@@ -28,7 +28,7 @@ async def get_messages_for_dialog(dialog_id: int, user_id: int):
                    Message.created_at,
                    Message.sender_id,
                    MessageReaders.read_time)
-            .join(MessageReaders, and_(Message.id == MessageReaders.message_id, MessageReaders.user_id != user_id), isouter=True)
+            .join(MessageReaders, Message.id == MessageReaders.message_id, isouter=True)
             .filter(Message.dialog_id == dialog_id)
             .order_by(Message.created_at)
         )
