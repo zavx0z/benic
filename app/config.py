@@ -1,9 +1,14 @@
+import logging
 import os
 from pathlib import Path
 
 from dotenv import load_dotenv
 
+from logger import conf
+
 load_dotenv(Path(__file__).parents[1] / '.env')
+logging.config.dictConfig(conf)
+
 POSTGRES_DB = os.getenv('POSTGRES_DB')
 POSTGRES_HOST = os.getenv('POSTGRES_HOST', 'localhost')
 POSTGRES_PORT = os.getenv('POSTGRES_PORT', 5432)

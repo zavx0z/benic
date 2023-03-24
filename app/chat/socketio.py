@@ -1,41 +1,23 @@
-from chat.actions import GET, JOIN, LEAVE, READ, WRITE
-from chat.actions.dialog import dialog_join, dialog_read, dialog_write
-from chat.channerls import ROOM_CHANNEL_DIALOG, CHANNEL_DIALOG, CHANNEL_USERS
+import logging
+
+from chat.actions import GET
+from chat.channels import CHANNEL_USERS
+from chat.crud.dialog import get_messages_count
 from chat.query.dialogs_statistics import get_user_dialog_statistics
 from chat.query.select import get_users_by_dialog_ids
 from chat.schema import ChatPayload
+from chat.schema.clientresponse import ClientResponse
 from shared.socketio import sio
 
-format_log = lambda action, room, username, param_action=None: print(f"{action.upper():7}{'' if param_action is None else param_action} {room:10} from: {username}")
+logger = logging.getLogger('sio')
 
 
-@sio.on(CHANNEL_DIALOG)
-async def channel_dialog(sid: str, payload: ChatPayload):  # todo: передавать id последнего сообщения
-    payload = ChatPayload(**payload)
-    user = await sio.get_session(sid)
-    if payload.action == JOIN:
-        dialog_room = ROOM_CHANNEL_DIALOG(payload.data)
-        format_log(payload.action, dialog_room, user.username)
-        await dialog_join(sid, payload.data, user.id)
-    elif payload.action == LEAVE:
-        dialog_room = ROOM_CHANNEL_DIALOG(payload.data)
-        format_log(payload.action, dialog_room, user.username)
-        sio.leave_room(sid, dialog_room)
-    elif payload.action == READ:
-        dialog_room = ROOM_CHANNEL_DIALOG(payload.data.get('dialogId'))
-        count = await dialog_read(
-            sid=sid,
-            user_id=user.id,
-            dialog_id=payload.data.get('dialogId'),
-            message_ids=payload.data.get('messageIds')
-        )
-        count and format_log(payload.action, dialog_room, user.username, param_action=count)
-    elif payload.action == WRITE:
-        dialog_id = payload.data.get('dialogId')
-        message_text = payload.data.get('text')
-        dialog_room = ROOM_CHANNEL_DIALOG(dialog_id)
-        format_log(payload.action, dialog_room, user.username)
-        await dialog_write(sid, dialog_id, message_text, user, dialog_room)
+# async_event_manager.subscribe('dialog_created', my_function)
+async def send_admin_is_first_message_support_dialog(user, dialog_id):
+    if not user.is_superuser:  # рассылка админам при первом сообщении todo
+        count_messages = await get_messages_count(dialog_id)
+        if not count_messages:
+            await sio.emit('clients', dict(ClientResponse(id=user.id, username=user.username, dialogId=dialog_id)))
 
 
 @sio.on(CHANNEL_USERS)
