@@ -7,7 +7,7 @@ class SessionUser(BaseModel):
     id: int
     username: str
     is_superuser: bool
-
+    device_id: int
 
 class MessageRequest(BaseModel):
     ownerId: int

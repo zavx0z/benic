@@ -2,6 +2,8 @@ import logging
 
 import socketio
 
+from auth.query.devices import add_user_device, update_device_status
+from auth.schema.device import DeviceBase
 from auth.token import get_jwt_subject
 from chat.actions import JOIN
 from chat.channels import CHANNEL_SUPPORT, STATIC_DIALOG
@@ -32,6 +34,7 @@ DISCONNECT = 'disconnect'
 async def disconnect(sid, *args, **kwargs):
     user = await sio.get_session(sid)
     if user:
+        await update_device_status(user.device_id, is_connected=False)
         dialogs = await get_dialogs_by_user_id_and_name(user.id, CHANNEL_SUPPORT)
         for dialog in dialogs:
             sio.leave_room(sid, dialog.id)
@@ -63,8 +66,17 @@ async def connect(sid, environ, auth):
     access_token = await get_access_token(sid, auth, environ)
     user = await get_authenticated_user(access_token, sid)
     if user:
+        device = auth.get('device')
+        device_inst = await add_user_device(user.id, DeviceBase(
+            user_agent=device.get('userAgent', device.get('ua')),
+            is_mobile=device.get('isMobile', False),
+            vendor=device.get('vendor'),
+            model=device.get('model'),
+            os=device.get('osName', device.get('os')),
+            os_version=device.get('osVersion'),
+        ))
         logger.info(CONNECT, '', user.username)
-        await sio.save_session(sid, SessionUser(id=user.id, username=user.username, is_superuser=user.is_superuser))
+        await sio.save_session(sid, SessionUser(id=user.id, username=user.username, is_superuser=user.is_superuser, device_id=device_inst.id))
         await check_user_dialog_permissions(user, environ, sid)
         await join_user_dialogs(user, sid)
     else:
