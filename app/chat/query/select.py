@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from sqlalchemy import select
+from sqlalchemy import select, asc, desc
 
 from auth.models import User, Device
 from chat.models.dialog import DialogParticipant
@@ -68,7 +68,8 @@ async def get_users_by_dialog_ids(dialog_ids: List[int]) -> List[UserChat]:
             .join(DialogParticipant)
             .join(Device, User.devices, isouter=True)
             .where(DialogParticipant.dialog_id.in_(dialog_ids))
-            .distinct(User.id)
+            .distinct(User.id, Device.updated_at)  # include updated_at in DISTINCT ON
+            .order_by(desc(Device.updated_at))  # use DESC for latest first
         )
         return [UserChat(
             id=i[0],

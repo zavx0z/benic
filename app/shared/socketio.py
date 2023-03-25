@@ -6,10 +6,11 @@ from auth.query.devices import add_user_device, update_device_status
 from auth.schema.device import DeviceBase
 from auth.token import get_jwt_subject
 from chat.actions import JOIN, UPDATE
-from chat.channels import CHANNEL_SUPPORT, STATIC_DIALOG, CHANNEL_DIALOG, DYNAMIC_DIALOG
+from chat.channels import CHANNEL_SUPPORT, STATIC_DIALOG, CHANNEL_DIALOG, DYNAMIC_DIALOG, CHANNEL_USERS
 from chat.crud.dialog import get_dialogs_by_user_id_and_name, create_dialog
 from chat.crud.message import create_message
 from chat.query.dialogs_statistics import get_user_dialog_statistics
+from chat.query.select import get_users_by_dialog_ids
 from chat.schema import SessionUser
 from chat.schema.message import MessageResponse, MessageInfo
 from config import ADMIN_ID, ADMIN_ORIGIN
@@ -136,6 +137,8 @@ async def join_user_dialogs(user, sid):
         for dialog in dialogs:
             logger.info(JOIN, STATIC_DIALOG(dialog.id), user.username)
             sio.enter_room(sid, STATIC_DIALOG(dialog.id))
+        result = await get_users_by_dialog_ids([dialog.id])
+        await sio.emit(CHANNEL_USERS, [dict(item) for item in result], room=sid)
 
         message = await create_message(
             text=text,
@@ -165,7 +168,6 @@ async def join_user_dialogs(user, sid):
                         read=False))
 
                 }}, room=DYNAMIC_DIALOG(dialog.id))
-
             await sio.emit(CHANNEL_DIALOG, {
                 'action': UPDATE,
                 "data": {
