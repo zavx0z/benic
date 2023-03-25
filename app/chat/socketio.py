@@ -26,7 +26,7 @@ async def channel_users(sid: str, payload: ChatPayload):
     payload = ChatPayload(**payload)
     if payload.action == GET:
         result = await get_users_by_dialog_ids(payload.data)
-        await sio.emit(CHANNEL_USERS, [dict(item) for item in result], room=sid)
+        await sio.emit(CHANNEL_USERS, [dict(item) for item in result], room=user.id)
 
 
 @sio.on('chat')

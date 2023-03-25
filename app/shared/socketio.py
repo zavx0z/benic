@@ -124,6 +124,14 @@ async def join_user_dialogs(user, sid):
     - подписывает его к каждому из диалогов
     """
     dialogs = await get_dialogs_by_user_id_and_name(user.id, 'support')
+
+    sio.enter_room(sid, user.id)
+    for dialog in dialogs:
+        sio.enter_room(sid, STATIC_DIALOG(dialog.id))
+        result = await get_users_by_dialog_ids([dialog.id])
+        for item in result:
+            await sio.emit(CHANNEL_USERS, [dict(item) for item in result], room=item.id)
+
     if not dialogs and not user.is_superuser:  # todo manager
         dialog = await create_dialog(CHANNEL_SUPPORT, user.id, [user.id, ADMIN_ID])
         text = '''
@@ -133,12 +141,10 @@ async def join_user_dialogs(user, sid):
 
 Спасибо, что выбрали нашу платформу, и мы надеемся...! Если у вас есть какие-либо отзывы или предложения, мы будем рады услышать их.
                 '''
+
         dialogs = [dialog]
         for dialog in dialogs:
             logger.info(JOIN, STATIC_DIALOG(dialog.id), user.username)
-            sio.enter_room(sid, STATIC_DIALOG(dialog.id))
-        result = await get_users_by_dialog_ids([dialog.id])
-        await sio.emit(CHANNEL_USERS, [dict(item) for item in result], room=sid)
 
         message = await create_message(
             text=text,
@@ -146,16 +152,9 @@ async def join_user_dialogs(user, sid):
             sender_id=1
         )
 
-        result = await get_user_dialog_statistics(user.id)
         if dialog.name == 'support':
             DYNAMIC = DYNAMIC_DIALOG(dialog.id)
             sio.enter_room(sid, DYNAMIC)
-
-            await sio.emit('chat', {
-                "action": 'init',
-                "data": [dict(item) for item in result]
-            }, room=sid)
-
             await sio.emit(CHANNEL_DIALOG, {
                 'action': action.WRITE,
                 "data": {
