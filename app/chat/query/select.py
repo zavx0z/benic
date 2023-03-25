@@ -1,12 +1,13 @@
+from datetime import datetime
 from typing import List
 
-from pydantic import BaseModel
-from sqlalchemy import select, and_
+from sqlalchemy import select
 
-from auth.models import User
+from auth.models import User, Device
 from chat.models.dialog import DialogParticipant
 from chat.models.message import Message, MessageReaders
 from chat.schema.message import MessageResponse
+from chat.schema.users import UserChat
 from shared.db import async_session
 
 
@@ -41,11 +42,6 @@ async def get_messages_for_dialog(dialog_id: int, user_id: int):
         ) for m in result]
 
 
-class UserChat(BaseModel):
-    id: int
-    name: str
-
-
 async def get_users(user_idx: List[int]):
     """Получение пользователей
     """
@@ -65,10 +61,18 @@ async def get_users_by_dialog_ids(dialog_ids: List[int]) -> List[UserChat]:
         result = await session.execute(
             select(
                 User.id,
-                User.username
+                User.username,
+                Device.is_mobile,
+                Device.updated_at
             )
             .join(DialogParticipant)
+            .join(Device, User.devices, isouter=True)
             .where(DialogParticipant.dialog_id.in_(dialog_ids))
             .distinct(User.id)
         )
-        return [UserChat(id=i.id, name=i.username) for i in result.fetchall()]
+        return [UserChat(
+            id=i[0],
+            name=i[1],
+            isMobile=i[2],
+            lastVisit=datetime.isoformat(i[3])
+        ) for i in result.fetchall()]
