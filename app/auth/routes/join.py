@@ -47,7 +47,7 @@ async def register(item: Credentials, db=Depends(get_db), authjwt: AuthJWT = Dep
     user = await create_user(db, item.username, item.password)
     access_token = create_access_token(user.id, authjwt)  # Генерируем токен авторизации
     refresh_token = authjwt.create_refresh_token(subject=user.id)  # Генерируем токен обновления
-    await async_event_manager.notify("AFTER_CREATE_USER", user.id)
+    await async_event_manager.notify("AFTER_CREATE_USER", user.id)  # Событие менеджеру
     return UserData(
         id=user.id,
         username=user.username,

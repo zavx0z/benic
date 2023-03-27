@@ -6,7 +6,7 @@ from auth.schema.device import DeviceBase
 from shared.db import async_session
 
 
-async def add_user_device(user_id: int, device: DeviceBase):
+async def add_if_not_exist_user_device(user_id: int, device: DeviceBase):
     """
     Добавляет новое устройство для пользователя, если оно еще не существует.
     """

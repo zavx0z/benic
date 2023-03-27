@@ -1,10 +1,8 @@
-from datetime import datetime
 from typing import List
 
-from sqlalchemy import select, desc
+from sqlalchemy import select
 
-from auth.models import User, Device
-from chat.models.dialog import DialogParticipant
+from auth.models import User
 from chat.models.message import Message, MessageReaders
 from chat.schema.message import MessageResponse
 from chat.schema.users import UserChat
@@ -56,28 +54,3 @@ async def get_users(user_idx: List[int]):
     return [UserChat(id=i.id, name=i.username) for i in result.fetchall()]
 
 
-async def get_users_by_dialog_ids(dialog_ids: List[int]) -> List[UserChat]:
-    async with async_session() as session:
-        result = await session.execute(
-            select(
-                User.id,
-                User.username,
-                Device.is_mobile,
-                Device.updated_at,
-                Device.is_connected,
-                Device.model
-            )
-            .join(DialogParticipant)
-            .join(Device, User.devices, isouter=True)
-            .where(DialogParticipant.dialog_id.in_(dialog_ids))
-            .distinct(User.id, Device.updated_at)  # include updated_at in DISTINCT ON
-            .order_by(desc(Device.updated_at))  # use DESC for latest first
-        )
-        return [UserChat(
-            id=i[0],
-            name=i[1],
-            isMobile=i[2],
-            lastVisit=datetime.isoformat(i[3]) if i[3] is not None else None,
-            isConnected=i[4],
-            deviceModel=i[5]
-        ) for i in result.fetchall()]

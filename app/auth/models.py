@@ -28,6 +28,7 @@ class Device(Base):
     def __repr__(self):
         return self.__str__()
 
+
 class User(Base):
     __tablename__ = "user"
     id = Column(Integer, primary_key=True)

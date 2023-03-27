@@ -2,14 +2,14 @@ import logging
 
 import socketio
 
-from auth.query.devices import add_user_device, update_device_status, get_connected_devices
+from auth.query.devices import add_if_not_exist_user_device, update_device_status, get_connected_devices
 from auth.schema.device import DeviceBase
 from auth.token import get_jwt_subject
-from chat.actions import GET
+from chat.actions import GET, UPDATE
 from chat.actions.user_create import create_support_dialog_and_send_welcome_message
 from chat.channels import STATIC_DIALOG, CHANNEL_USERS
 from chat.crud.dialog import get_dialogs_by_user_id_and_name, get_dialogs_by_user_id
-from chat.query.select import get_users_by_dialog_ids
+from chat.query.users_for_dialogs import get_users_by_dialog_ids
 from chat.schema import SessionUser
 from config import ADMIN_ORIGIN
 from events import async_event_manager
@@ -92,7 +92,7 @@ async def connect(sid, environ, auth):
     user = await get_authenticated_user(access_token, sid)
     if user:
         device = auth.get('device')
-        device_inst = await add_user_device(user.id, DeviceBase(
+        device_inst = await add_if_not_exist_user_device(user.id, DeviceBase(
             user_agent=device.get('userAgent', device.get('ua')),
             is_mobile=device.get('isMobile', False),
             vendor=device.get('vendor'),
@@ -100,10 +100,10 @@ async def connect(sid, environ, auth):
             os=device.get('osName', device.get('os')),
             os_version=device.get('osVersion'),
         ))
-        logger.info(CONNECT, '', user.username)
+        logger.info(CONNECT, device.get('osName', device.get('os')), user.username)
         await sio.save_session(sid, SessionUser(id=user.id, username=user.username, is_superuser=user.is_superuser, device_id=device_inst.id))
         await check_user_dialog_permissions(user, environ, sid)
-        await join_user_dialogs(user, sid)
+        await join_room(user, sid)
     else:
         await sio.disconnect(sid)
         logger.info(DISCONNECT, 'not auth', user.username)
@@ -136,21 +136,52 @@ async def check_user_dialog_permissions(user, environ, sid):
         await sio.emit('error', {"message": "В чате диалоги только для клиентов.", "type": "warning"}, room=sid)
 
 
-async def join_user_dialogs(user, sid):
-    """Присоединяет пользователя к его диалогам.
+async def notify_users_about_new_user(user, user_instances):
+    """ Отправляет всем пользователям в диалогах данные о себе,
+     который только что присоединился к комнате.
 
-    - получает все диалоги пользователя, имеющие имя 'support'
-    - создается новый диалог, если у пользователя нет диалогов с таким именем и он не является суперпользователем
-    - подписывает его к каждому из диалогов
+    :param user: объект User, который только что присоединился к комнате
+    :param user_instances: список объектов User, которые находятся в тех же диалогах, что и user
+    :return: None
     """
-    dialogs = await get_dialogs_by_user_id_and_name(user.id, 'support')
-    sio.enter_room(sid, user.id)  # Подключение к комнате пользователя на канал [users]
+    self_instance = next(filter(lambda inst: inst.id == user.id, user_instances), None)
+    for instance in user_instances:
+        await sio.emit(
+            CHANNEL_USERS,
+            {
+                "action": UPDATE,
+                "data": {
+                    "userId": self_instance.id,  # Отправляет всем данные о себе
+                    "data": dict(self_instance)
+                }
+            },
+            room=instance.id
+        )
+
+
+async def join_room(user: SessionUser, sid: str) -> None:
+    """
+    Присоединяет пользователя к его комнате на канале [users] и информационно подписывает его на комнаты диалогов,
+    в которых он участвует. Также отправляет ему данные о себе и всем остальным пользователям, участвующим в этих
+    диалогах.
+
+    :param user: экземпляр класса User, представляющий пользователя, который присоединяется к комнате
+    :param sid: уникальный идентификатор сокет-соединения пользователя
+    """
+
+    # ИНДИВИДУАЛЬНЫЙ Подключение к комнате пользователя на канал [users]
+    sio.enter_room(sid, user.id)
+
+    # Получение списка диалогов пользователя и информации об участниках этих диалогов
+    dialogs = await get_dialogs_by_user_id(user.id)
+    user_instances = await get_users_by_dialog_ids([item.id for item in dialogs])
+    users = [dict(item) for item in user_instances]
+
+    # Отправляет пользователю данные обо всех участниках диалогов, в которых он участвует
+    await sio.emit(CHANNEL_USERS, {"action": GET, "data": users}, room=user.id)
+
+    # ИНФОРМАЦИОННЫЙ подписывает к комнате Диалога где присутствуют User
     for dialog in dialogs:
         sio.enter_room(sid, STATIC_DIALOG(dialog.id))
 
-        result = await get_users_by_dialog_ids([dialog.id])
-        for item in result:
-            await sio.emit(CHANNEL_USERS, {
-                "action": GET,
-                "data": [dict(item) for item in result]
-            }, room=item.id)
+    await notify_users_about_new_user(user, user_instances)
