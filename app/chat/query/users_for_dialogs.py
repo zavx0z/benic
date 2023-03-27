@@ -36,13 +36,7 @@ async def get_users_by_dialog_ids(dialog_ids: List[int]) -> List[UserChat]:
                     func.max(Device.os).label('deviceOs'),
                     func.row_number().over(
                         partition_by=Device.user_id,
-                        order_by=(
-                            case(
-                                (Device.is_connected.is_(True), 1),
-                                else_=2
-                            ),
-                            func.max(Device.updated_at).desc()
-                        )
+                        order_by=(case((Device.is_connected.is_(True), 1), else_=2), func.max(Device.updated_at).desc())
                     ).label('device_order')
                 )
                 .where(DialogParticipant.dialog_id.in_(dialog_ids))

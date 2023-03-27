@@ -25,10 +25,8 @@ async def get_user(authjwt: AuthJWT = Depends(), db=Depends(get_db)):
         stmt = select(User).where(User.id == pk)
         result = await db.execute(stmt)
         user = result.scalars().first()
-        return ItemUser(
-            id=user.id,
-            username=user.username
-        )
+        if user:
+            return ItemUser(id=user.id, username=user.username)
     except FreshTokenRequired:
         return JSONResponse(
             status_code=401,

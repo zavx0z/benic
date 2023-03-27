@@ -27,7 +27,8 @@ async def get_user(pk):
         # result = await session.execute(select(User).options(joinedload(User.dialogs)).where(User.id == pk))
         result = await session.execute(select(User).where(User.id == pk))
         user = result.scalars().first()
-        await session.refresh(user)
         if not user:
             return None
-        return user
+        else:
+            await session.refresh(user)
+            return user
