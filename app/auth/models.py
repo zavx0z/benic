@@ -22,6 +22,11 @@ class Device(Base):
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
     user = relationship("User", back_populates="devices")
 
+    def __str__(self):
+        return f"<{self.os}>"
+
+    def __repr__(self):
+        return self.__str__()
 
 class User(Base):
     __tablename__ = "user"

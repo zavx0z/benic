@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from sqlalchemy import select, func, and_
 
@@ -6,6 +6,15 @@ from chat.models.dialog import Dialog, DialogParticipant
 from chat.models.message import Message, MessageReaders
 from chat.schema.dialog import DialogStatistic
 from shared.db import async_session
+
+
+async def get_dialog_percipient_ids(dialog_id: int) -> [Optional[int]]:
+    async with async_session() as session:
+        result = await session.execute(
+            select(DialogParticipant.user_id).where(DialogParticipant.dialog_id == dialog_id)
+        )
+        dialog = result.fetchall()
+        return [i[0] for i in dialog]
 
 
 # todo добавить свой диалог тоже
@@ -95,6 +104,7 @@ async def get_user_dialog_statistics(user_id: int) -> List[DialogStatistic]:
             dialogs.c.last_message_sender_id       # идентификатор отправителя последнего сообщения.
         ))
         # --------------------------------------------------------------------------------------------------------------------
+        result = result.fetchall()
         return [DialogStatistic(
             id=row.dialog_id,
             name=row.dialog_name,
@@ -104,4 +114,5 @@ async def get_user_dialog_statistics(user_id: int) -> List[DialogStatistic]:
             lastMessageText=row.last_message_text,
             lastMessageTime=row.last_message_time.isoformat() if row.last_message_time else None,
             lastMessageSenderId=row.last_message_sender_id,
-        ) for row in result.fetchall()]
+            participants=await get_dialog_percipient_ids(row.dialog_id)
+        ) for row in result]

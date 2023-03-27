@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import BaseModel
 
 
@@ -21,6 +23,7 @@ class DialogStatistic(BaseModel):
     lastMessageText: str
     lastMessageTime: str
     lastMessageSenderId: int
+    participants: List[int]
 
 
 class DialogChatDB(BaseModel):

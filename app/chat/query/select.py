@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 
-from sqlalchemy import select, asc, desc
+from sqlalchemy import select, desc
 
 from auth.models import User, Device
 from chat.models.dialog import DialogParticipant
@@ -63,7 +63,9 @@ async def get_users_by_dialog_ids(dialog_ids: List[int]) -> List[UserChat]:
                 User.id,
                 User.username,
                 Device.is_mobile,
-                Device.updated_at
+                Device.updated_at,
+                Device.is_connected,
+                Device.model
             )
             .join(DialogParticipant)
             .join(Device, User.devices, isouter=True)
@@ -75,5 +77,7 @@ async def get_users_by_dialog_ids(dialog_ids: List[int]) -> List[UserChat]:
             id=i[0],
             name=i[1],
             isMobile=i[2],
-            lastVisit=datetime.isoformat(i[3])
+            lastVisit=datetime.isoformat(i[3]) if i[3] is not None else None,
+            isConnected=i[4],
+            deviceModel=i[5]
         ) for i in result.fetchall()]

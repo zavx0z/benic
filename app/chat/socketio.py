@@ -1,10 +1,7 @@
 import logging
 
-from chat.actions import GET
-from chat.channels import CHANNEL_USERS
 from chat.crud.dialog import get_messages_count
 from chat.query.dialogs_statistics import get_user_dialog_statistics
-from chat.query.select import get_users_by_dialog_ids
 from chat.schema import ChatPayload
 from chat.schema.clientresponse import ClientResponse
 from shared.socketio import sio
@@ -18,15 +15,6 @@ async def send_admin_is_first_message_support_dialog(user, dialog_id):
         count_messages = await get_messages_count(dialog_id)
         if not count_messages:
             await sio.emit('clients', dict(ClientResponse(id=user.id, username=user.username, dialogId=dialog_id)))
-
-
-@sio.on(CHANNEL_USERS)
-async def channel_users(sid: str, payload: ChatPayload):
-    user = await sio.get_session(sid)
-    payload = ChatPayload(**payload)
-    if payload.action == GET:
-        result = await get_users_by_dialog_ids(payload.data)
-        await sio.emit(CHANNEL_USERS, [dict(item) for item in result], room=user.id)
 
 
 @sio.on('chat')

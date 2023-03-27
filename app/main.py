@@ -8,7 +8,6 @@ from pydantic.main import BaseModel
 from app.routes import router as app_router
 from auth.routes import refresh, login, user, join
 from config import JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
-from events import AsyncEventManager
 from server.routes import router as server_router
 from shared.socketio import sio_app
 import chat.socketio
@@ -17,7 +16,6 @@ from task.routes import router as task_router
 from workspace.routes import router as workspace_router
 
 app = FastAPI()
-async_event_manager = AsyncEventManager()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

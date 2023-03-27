@@ -51,16 +51,21 @@ async def add_user_device(user_id: int, device: DeviceBase):
         return device_inst
 
 
-async def update_device_status(device_id: int, is_connected: bool):
+async def update_device_status(user_id: int, device_id: int, is_connected: bool):
     """
     Обновляет статус подключения устройства.
     """
     async with async_session() as session:
         # Обновляем статус устройства
-        stmt = update(Device).where(Device.id == device_id).values(is_connected=is_connected)
+        stmt = (
+            update(
+                Device
+            )
+            .where(Device.id == device_id)
+            .values(is_connected=is_connected)
+        )
         await session.execute(stmt)
         await session.commit()
-
         # Получаем обновленное устройство из базы данных
         device = await session.get(Device, device_id)
         return device

@@ -2,19 +2,17 @@ import logging
 
 import socketio
 
-from auth.query.devices import add_user_device, update_device_status
+from auth.query.devices import add_user_device, update_device_status, get_connected_devices
 from auth.schema.device import DeviceBase
 from auth.token import get_jwt_subject
-from chat.actions import JOIN, UPDATE
-from chat.channels import CHANNEL_SUPPORT, STATIC_DIALOG, CHANNEL_DIALOG, DYNAMIC_DIALOG, CHANNEL_USERS
-from chat.crud.dialog import get_dialogs_by_user_id_and_name, create_dialog
-from chat.crud.message import create_message
-from chat.query.dialogs_statistics import get_user_dialog_statistics
+from chat.actions import GET
+from chat.actions.user_create import create_support_dialog_and_send_welcome_message
+from chat.channels import STATIC_DIALOG, CHANNEL_USERS
+from chat.crud.dialog import get_dialogs_by_user_id_and_name, get_dialogs_by_user_id
 from chat.query.select import get_users_by_dialog_ids
 from chat.schema import SessionUser
-from chat.schema.message import MessageResponse, MessageInfo
-from config import ADMIN_ID, ADMIN_ORIGIN
-from shared import action
+from config import ADMIN_ORIGIN
+from events import async_event_manager
 from shared.crud import get_user
 
 # Настраиваем логгер Socket.IO
@@ -39,9 +37,13 @@ DISCONNECT = 'disconnect'
 async def disconnect(sid, *args, **kwargs):
     user = await sio.get_session(sid)
     if user:
-        await update_device_status(user.device_id, is_connected=False)
-        dialogs = await get_dialogs_by_user_id_and_name(user.id, CHANNEL_SUPPORT)
+        await update_device_status(user.id, user.device_id, is_connected=False)
+        devices = await get_connected_devices(user.id)
+        dialogs = await get_dialogs_by_user_id(user.id)
         for dialog in dialogs:
+            result = await get_users_by_dialog_ids([dialog.id])
+            for item in result:
+                await sio.emit(CHANNEL_USERS, [dict(item) for item in result], room=item.id)
             sio.leave_room(sid, dialog.id)
     logger.info(DISCONNECT, '', user.username)
 
@@ -49,6 +51,24 @@ async def disconnect(sid, *args, **kwargs):
 @sio.on('*')
 def catch_all(event, sid, data):
     print(event)
+
+
+async def after_create_user(user_id: int):
+    """Инициализация вновь созданного пользователя
+
+    :param int user_id: ID пользователя
+    :return:
+    """
+
+    welcome_text = """Добро пожаловать в наш чат поддержки! 
+    Если у вас есть вопросы, задавайте их здесь.
+    Благодарим вас за выбор нашей платформы.
+    Если у вас есть отзывы или предложения, мы будем рады их услышать.
+    """
+    await create_support_dialog_and_send_welcome_message(sio, user_id=user_id, welcome_text=welcome_text)
+
+
+async_event_manager.subscribe("AFTER_CREATE_USER", after_create_user)
 
 
 @sio.on(CONNECT)
@@ -124,58 +144,13 @@ async def join_user_dialogs(user, sid):
     - подписывает его к каждому из диалогов
     """
     dialogs = await get_dialogs_by_user_id_and_name(user.id, 'support')
-
-    sio.enter_room(sid, user.id)
+    sio.enter_room(sid, user.id)  # Подключение к комнате пользователя на канал [users]
     for dialog in dialogs:
         sio.enter_room(sid, STATIC_DIALOG(dialog.id))
+
         result = await get_users_by_dialog_ids([dialog.id])
         for item in result:
-            await sio.emit(CHANNEL_USERS, [dict(item) for item in result], room=item.id)
-
-    if not dialogs and not user.is_superuser:  # todo manager
-        dialog = await create_dialog(CHANNEL_SUPPORT, user.id, [user.id, ADMIN_ID])
-        text = '''
-Добро пожаловать в наш чат поддержки!
-
-Если у вас есть какие-либо вопросы, пиши сюда.
-
-Спасибо, что выбрали нашу платформу, и мы надеемся...! Если у вас есть какие-либо отзывы или предложения, мы будем рады услышать их.
-                '''
-
-        dialogs = [dialog]
-        for dialog in dialogs:
-            logger.info(JOIN, STATIC_DIALOG(dialog.id), user.username)
-
-        message = await create_message(
-            text=text,
-            dialog_id=dialog.id,
-            sender_id=1
-        )
-
-        if dialog.name == 'support':
-            DYNAMIC = DYNAMIC_DIALOG(dialog.id)
-            sio.enter_room(sid, DYNAMIC)
-            await sio.emit(CHANNEL_DIALOG, {
-                'action': action.WRITE,
-                "data": {
-                    "dialogId": dialog.id,
-                    "message": dict(MessageResponse(
-                        id=message.id,
-                        senderId=message.sender_id,
-                        created=message.created_at.isoformat(),
-                        text=message.text,
-                        read=False))
-
-                }}, room=DYNAMIC_DIALOG(dialog.id))
-            await sio.emit(CHANNEL_DIALOG, {
-                'action': UPDATE,
-                "data": {
-                    "dialogId": dialog.id,
-                    "message": dict(MessageInfo(
-                        lastMessageSenderId=message.sender_id,
-                        lastMessageTime=message.created_at.isoformat(),
-                        lastMessageText=message.text[:min(len(message.text), 40)]
-                    ))
-                }}, room=STATIC_DIALOG(dialog.id))
-
-            logger.info(UPDATE, STATIC_DIALOG(dialog.id), user.username)
+            await sio.emit(CHANNEL_USERS, {
+                "action": GET,
+                "data": [dict(item) for item in result]
+            }, room=item.id)
