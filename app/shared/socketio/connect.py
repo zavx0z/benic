@@ -16,7 +16,8 @@ from logger import socketio_logger
 from shared.crud import get_user
 from shared.socketio.header_utils import user_device_from_header_auth, get_access_token
 
-sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=[], logger=socketio_logger)
+mgr = socketio.AsyncRedisManager('redis://0.0.0.0:6379')
+sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=[], logger=socketio_logger, client_manager=mgr)
 sio_app = socketio.ASGIApp(sio)
 
 logger = logging.getLogger('sio')
