@@ -9,7 +9,7 @@ from app.routes import router as app_router
 from auth.routes import refresh, login, user, join
 from config import JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 from server.routes import router as server_router
-from shared.socketio import sio_app
+from shared.socketio.connect import sio_app
 import chat.socketio
 import chat.channels.dialog
 from task.routes import router as task_router

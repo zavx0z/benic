@@ -9,7 +9,7 @@ from chat.query.select import get_messages_for_dialog
 from chat.schema import ChatPayload
 from chat.schema.message import MessageResponse, MessageInfo
 from chat.socketio import send_admin_is_first_message_support_dialog
-from shared.socketio import sio
+from shared.socketio.connect import sio
 
 logger = logging.getLogger('sio')
 

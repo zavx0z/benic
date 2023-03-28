@@ -6,38 +6,38 @@ from auth.schema.device import DeviceBase
 from shared.db import async_session
 
 
-async def add_if_not_exist_user_device(user_id: int, device: DeviceBase):
+async def get_or_add_user_device(user_id: int, data_device: DeviceBase):
     """
     Добавляет новое устройство для пользователя, если оно еще не существует.
     """
     async with async_session() as session:
         # Ищем устройство в базе данных, используя параметры
-        device_inst = await session.execute(select(Device).filter_by(
-            is_mobile=device.is_mobile,
-            vendor=device.vendor,
-            model=device.model,
-            os=device.os,
-            os_version=device.os_version,
-            user_agent=device.user_agent,
+        device = await session.execute(select(Device).filter_by(
+            is_mobile=data_device.is_mobile,
+            vendor=data_device.vendor,
+            model=data_device.model,
+            os=data_device.os,
+            os_version=data_device.os_version,
+            user_agent=data_device.user_agent,
             user_id=user_id
         ))
         # Извлекаем результат запроса
-        device_inst = device_inst.scalar()
+        device = device.scalar()
         # Если устройство не найдено, создаем новое и добавляем его в базу данных
-        if device_inst is None:
-            device_inst = Device(
-                is_mobile=device.is_mobile,
-                vendor=device.vendor,
-                model=device.model,
-                os=device.os,
-                os_version=device.os_version,
-                user_agent=device.user_agent,
+        if device is None:
+            device = Device(
+                is_mobile=data_device.is_mobile,
+                vendor=data_device.vendor,
+                model=data_device.model,
+                os=data_device.os,
+                os_version=data_device.os_version,
+                user_agent=data_device.user_agent,
                 user_id=user_id,
                 updated_at=None,
                 is_connected=None
             )
             try:
-                session.add(device_inst)
+                session.add(device)
                 await session.commit()
             except IntegrityError:
                 # Обрабатываем ошибки базы данных
@@ -45,10 +45,10 @@ async def add_if_not_exist_user_device(user_id: int, device: DeviceBase):
                 raise
         # Если устройство найдено, обновляем его поля
         else:
-            device_inst.is_connected = True
+            device.is_connected = True
             await session.commit()
         # Возвращаем найденное или созданное устройство
-        return device_inst
+        return device
 
 
 async def update_device_status(user_id: int, device_id: int, is_connected: bool):
