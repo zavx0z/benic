@@ -14,6 +14,11 @@ POSTGRES_HOST = os.getenv('POSTGRES_HOST', 'localhost')
 POSTGRES_PORT = os.getenv('POSTGRES_PORT', 5432)
 POSTGRES_USER = os.getenv('POSTGRES_USER')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
+
+REDIS_HOST = os.getenv('REDIS_HOST', "redis://0.0.0.0")
+REDIS_PORT = os.getenv('REDIS_PORT', 6379)
+ASYNC_REDIS_MANAGER = f"{REDIS_HOST}:{REDIS_PORT}"
+
 if os.getenv('DEVELOP'):
     POSTGRES_HOST = 'localhost'
 JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'secret')

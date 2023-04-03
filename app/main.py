@@ -1,11 +1,10 @@
-import tailer
+from dramatiq_abort import abort
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException
 from pydantic.main import BaseModel
-from starlette.background import BackgroundTasks
 
 from app.routes import router as app_router
 from auth.routes import refresh, login, user, join
@@ -15,6 +14,7 @@ from shared.socketio.connect import sio_app, sio
 import chat.socketio
 import chat.channels.dialog
 from task.routes import router as task_router
+from worker import tail_logs, get_running_tasks
 from workspace.routes import router as workspace_router
 
 app = FastAPI()
@@ -26,33 +26,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-async def tail_logs(log_file_path):
-    with open(log_file_path) as file:
-        # читаем последние 100 строк из лог-файла
-        last_lines = tailer.tail(file, 100)
-        for line in last_lines:
-            await sio.emit("log", line)
-
-    # запускаем чтение лог-файла в режиме tail
-    for line in tailer.follow(open(log_file_path)):
-        await sio.emit("log", line)
+message_id = None  # Инициализация переменной фоновой задачи
 
 
-background_task = None  # Инициализация переменной фоновой задачи
+@app.post("/api.v1/log/start")
+def start_tail_logs():
+    tasks = get_running_tasks()
+    if not any(task.actor_name for task in tasks):
+        tail_logs.send('app.log')
 
 
-@app.post("/api.v1/start_tail_logs")
-def start_tail_logs(background_tasks: BackgroundTasks):
-    global background_task  # Объявление глобальной переменной фоновой задачи
-    # Проверка, что фоновая задача еще не запущена
-    if background_task is None:
-        # Запуск функции tail_logs() в фоновом режиме
-        background_task = background_tasks.add_task(tail_logs, 'app.log')
-    else:
-        # Остановка фоновой задачи
-        background_task.cancel()
-        background_task = None
+@app.post("/api.v1/log/stop")
+def stop_tail_logs():
+    tasks = get_running_tasks()
+    task = next(filter(lambda v: v.actor_name == 'tail_logs', tasks), None)
+    abort(message_id=task.message_id)
 
 
 class Settings(BaseModel):

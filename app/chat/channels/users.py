@@ -4,10 +4,11 @@ from chat.actions import GET
 from chat.channels import CHANNEL_USERS
 from chat.query.users_for_dialogs import get_users_by_dialog_ids
 from chat.schema import ChatPayload
-from shared.socketio import sio
+from shared.socketio.connect import sio
 
 logger = logging.getLogger('chat')
 logger.info('hello')
+
 
 @sio.on(CHANNEL_USERS)
 async def channel_users(sid: str, payload: ChatPayload):

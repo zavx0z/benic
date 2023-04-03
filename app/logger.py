@@ -8,9 +8,8 @@ class MyFormatter(logging.Formatter):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f')[:-3]
         username, result = record.args
         action = f"{record.msg} {getattr(record, 'action', '')}"
-        message = f"{action:20}{username:30} {result:30}{record.funcName:20}[{record.lineno:4}]{record.filename:20}{record.pathname}"
-        msg = f"{timestamp} - {record.levelname} - {message}"
-        return msg
+        message = f"{action:20}{username:40} {result:40}{record.funcName:30}[{record.lineno:4}]{record.filename:20}{record.pathname}"
+        return f"{timestamp} - {record.levelname} - {message}"
 
 
 conf = {
@@ -35,12 +34,20 @@ conf = {
             'class': 'logging.StreamHandler',
             'stream': sys.stdout,
             'formatter': 'chat_formatter'
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': 'app.log',
+            'formatter': 'sio_formatter'
         }
     },
     'loggers': {
         'sio': {
             'level': 'DEBUG',
-            'handlers': ['sio_handler']
+            'handlers': [
+                'sio_handler',
+                'file',
+            ]
         },
         'chat': {
             'level': 'DEBUG',

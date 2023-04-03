@@ -10,13 +10,13 @@ from chat.channels import STATIC_DIALOG, CHANNEL_USERS
 from chat.crud.dialog import get_dialogs_by_user_id
 from chat.query.users_for_dialogs import get_users_by_dialog_ids
 from chat.schema import SessionUser
-from config import ADMIN_ORIGIN
+from config import ADMIN_ORIGIN, ASYNC_REDIS_MANAGER
 from events import async_event_manager
 from logger import socketio_logger
 from shared.crud import get_user
 from shared.socketio.header_utils import user_device_from_header_auth, get_access_token
 
-mgr = socketio.AsyncRedisManager('redis://0.0.0.0:6379')
+mgr = socketio.AsyncRedisManager(ASYNC_REDIS_MANAGER)
 sio = socketio.AsyncServer(async_mode="asgi", cors_allowed_origins=[], logger=socketio_logger, client_manager=mgr)
 sio_app = socketio.ASGIApp(sio)
 
@@ -49,8 +49,8 @@ async def disconnect(sid, *args, **kwargs):
         await notify_users_status_user(user, user_instances)
         for dialog in dialogs:
             sio.leave_room(sid, dialog.id)
-        logger.info(DISCONNECT, '', user.username)
-    logger.info(DISCONNECT, '', "unanimous")
+        logger.info(DISCONNECT, user.username, '')
+    logger.info(DISCONNECT, 'unanimous', "")
 
 
 @sio.on('*')
@@ -73,7 +73,7 @@ async def connect(sid, environ, auth):
     """
     access_token = get_access_token(sid, auth, environ)
     if access_token:
-        logger.info("TOKEN", sid, "✔️")
+        logger.info("TOKEN", sid, "OK")
         user = await get_authenticated_user(access_token, sid)
 
         if user:
