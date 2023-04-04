@@ -12,6 +12,5 @@ passlib~=1.7.4
 
 python-dotenv~=1.0.0
 
-redis==4.5.4
 dramatiq
 dramatiq-abort[redis]
