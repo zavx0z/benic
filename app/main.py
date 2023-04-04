@@ -13,6 +13,7 @@ from server.routes import router as server_router
 from shared.socketio.connect import sio_app, sio
 import chat.socketio
 import chat.channels.dialog
+import chat.channels.users
 from task.routes import router as task_router
 from worker import tail_logs, get_running_tasks
 from workspace.routes import router as workspace_router
