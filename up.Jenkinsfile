@@ -46,6 +46,7 @@ pipeline {
                     withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
                         remote.identityFile = sshKey
                         sshCommand remote: remote, command: "docker-compose -f ${ROOT_APP_DIR}/docker-compose.yml stop"
+                        sshCommand remote: remote, command: "docker stop nginx"
                     }
                 }
             }
@@ -90,6 +91,7 @@ pipeline {
                     withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
                         remote.identityFile = sshKey
                         sshCommand remote: remote, command: "docker-compose -f ${ROOT_APP_DIR}/docker-compose.yml up -d"
+                        sshCommand remote: remote, command: "docker start nginx"
                     }
                 }
             }
