@@ -15,10 +15,13 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
     ports:
       - "8000:8000"
     depends_on:
       - db
+      - redis
     restart: always
     networks:
       net:
@@ -32,7 +35,6 @@ services:
       - .env
     volumes:
       - ${POSTGRES_DIR}/data:/var/lib/postgresql/data/
-      - ${POSTGRES_DIR}/backup:/backup
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -44,6 +46,17 @@ services:
       net:
         aliases:
           - ${POSTGRES_HOST}
+
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    restart: always
+    networks:
+      net:
+        aliases:
+          - ${REDIS_HOST}
 
 networks:
   net:

@@ -109,7 +109,7 @@ async def check_user_dialog_permissions(user, environ, sid):
     """
     if user.is_superuser and not any(origin in environ.get("HTTP_ORIGIN") for origin in ADMIN_ORIGIN):
         await sio.emit('error', {"message": "В чате диалоги только для клиентов.", "type": "warning"}, room=sid)
-        logger_chat("Админ! ты что тут забыл?")
+        logger.info("ADMIN", 'BOTS_WORK', "🖕")
 
 
 async def notify_users_status_user(user, user_instances):
