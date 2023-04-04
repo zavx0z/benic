@@ -2,6 +2,7 @@ fastapi==0.95.0
 pydantic==1.10.7
 uvicorn[standard]==0.21.1
 python-socketio==5.8.0
+aioredis
 
 SQLAlchemy==2.0.8
 asyncpg~=0.27.0
@@ -12,5 +13,7 @@ passlib~=1.7.4
 
 python-dotenv~=1.0.0
 
-dramatiq
+dramatiq[redis, watch]
 dramatiq-abort[redis]
+
+tailer

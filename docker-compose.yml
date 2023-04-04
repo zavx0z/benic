@@ -8,6 +8,7 @@ services:
       - .env
     volumes:
       - ./app:/app
+      - ${DRAMATIQ_DIR}:${DRAMATIQ_DIR}
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_HOST: ${POSTGRES_HOST}

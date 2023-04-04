@@ -13,7 +13,7 @@ from dramatiq_abort import Abortable, backends
 from pydantic import BaseModel
 
 load_dotenv(Path(__file__).parents[1] / '.env')
-REDIS_HOST = os.getenv('REDIS_HOST', "redis://0.0.0.0")
+REDIS_HOST = f"redis://{os.getenv('REDIS_HOST', '0.0.0.0')}"
 REDIS_PORT = os.getenv('REDIS_PORT', 6379)
 
 external_sio = socketio.RedisManager(f"{REDIS_HOST}:{REDIS_PORT}", write_only=True)

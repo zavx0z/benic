@@ -15,7 +15,7 @@ POSTGRES_PORT = os.getenv('POSTGRES_PORT', 5432)
 POSTGRES_USER = os.getenv('POSTGRES_USER')
 POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD')
 
-REDIS_HOST = os.getenv('REDIS_HOST', "redis://0.0.0.0")
+REDIS_HOST = f"redis://{os.getenv('REDIS_HOST', '0.0.0.0')}"
 REDIS_PORT = os.getenv('REDIS_PORT', 6379)
 ASYNC_REDIS_MANAGER = f"{REDIS_HOST}:{REDIS_PORT}"
 
