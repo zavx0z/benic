@@ -27,6 +27,10 @@
 """
 from collections import defaultdict
 
+AFTER_CREATE_USER = 'AFTER_CREATE_USER'
+SIO_DISCONNECT = 'SIO_DISCONNECT'
+SIO_CONNECT = 'SIO_CONNECT'
+
 
 class AsyncEventManager:
     """ Класс для асинхронного управления событиями.

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from auth.models import User
 from auth.schema import UserData
 from auth.token import create_access_token
-from events import async_event_manager
+from events import async_event_manager, AFTER_CREATE_USER
 from shared.db import get_db
 
 router = APIRouter()
@@ -47,7 +47,7 @@ async def register(item: Credentials, db=Depends(get_db), authjwt: AuthJWT = Dep
     user = await create_user(db, item.username, item.password)
     access_token = create_access_token(user.id, authjwt)  # Генерируем токен авторизации
     refresh_token = authjwt.create_refresh_token(subject=user.id)  # Генерируем токен обновления
-    await async_event_manager.notify("AFTER_CREATE_USER", user.id)  # Событие менеджеру
+    await async_event_manager.notify(AFTER_CREATE_USER, user.id)  # Событие менеджеру
     return UserData(
         id=user.id,
         username=user.username,

@@ -1,4 +1,5 @@
 import logging
+from typing import List
 
 from chat.actions import JOIN, LEAVE, READ, WRITE, UPDATE
 from chat.channels import CHANNEL_DIALOG, STATIC_DIALOG, DYNAMIC_DIALOG
@@ -9,9 +10,20 @@ from chat.query.select import get_messages_for_dialog
 from chat.schema import ChatPayload
 from chat.schema.message import MessageResponse, MessageInfo
 from chat.socketio import send_admin_is_first_message_support_dialog
+from events import async_event_manager, SIO_DISCONNECT
 from shared.socketio.connect import sio
 
 logger = logging.getLogger('sio')
+
+
+async def leave_static_dialog(sid: str, user, dialog_ids: List[int]):
+    for idx in dialog_ids:
+        STATIC = STATIC_DIALOG(idx)
+        sio.leave_room(sid, idx)
+        logger.info(user.id, user.username, sid, LEAVE, STATIC_DIALOG, STATIC)
+
+
+# async_event_manager.subscribe(SIO_DISCONNECT, leave_static_dialog)
 
 
 @sio.on(CHANNEL_DIALOG)

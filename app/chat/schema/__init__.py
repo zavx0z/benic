@@ -8,6 +8,7 @@ class SessionUser(BaseModel):
     username: str
     is_superuser: bool
     device_id: int
+    sid: str
 
 
 class MessageRequest(BaseModel):
