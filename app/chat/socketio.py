@@ -30,14 +30,3 @@ async def read_message(sid: str, payload: ChatPayload):
             "data": [dict(item) for item in result]
         }, room=sid)
         logger.info(user.id, user.username, sid, GET, CHANNEL_CHAT, sid)
-
-
-@sio.on("joinDialog")
-async def join_dialog(sid, dialog_id):
-    user = await sio.get_session(sid)
-    # action_logger.info(user.id, user.username, sid, 'JOIN', 'dialog', dialog_id)
-    sio.enter_room(sid, dialog_id)
-
-# await sio.emit('support', message, room=dialog.id)
-# await sio.emit('message', {"dialogId": dialog.id, "message": message}, room=ROOM_CHANNEL_DIALOG(dialog.id))
-# await sio.emit(CHANNEL_DIALOG, {"dialogId": dialog.id, "unreadMessages": 1}, room=ROOM_CHANNEL_DIALOG(dialog.id), skip_sid=sid)
