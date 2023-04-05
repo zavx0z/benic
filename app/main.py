@@ -12,7 +12,7 @@ from config import JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 from server.routes import router as server_router
 from shared.socketio.connect import sio_app, sio
 import chat.socketio
-import chat.channels.dialog
+import chat.channels.dialogs.dialog
 import chat.channels.users
 from task.routes import router as task_router
 from worker import tail_logs, get_running_tasks
