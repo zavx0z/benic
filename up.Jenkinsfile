@@ -21,6 +21,7 @@ pipeline {
         string( name: 'POSTGRES_USER', defaultValue: "zavx0zBenif")
         string( name: 'POSTGRES_PASSWORD', defaultValue: "12112022")
         string( name: 'JWT_SECRET_KEY', defaultValue: "adkngdfFDGSDFqhnlakjflorqirefOJ;SJDG")
+        booleanParam(name: 'rmDB', defaultValue: false, description: 'Очистить базу данных')
         booleanParam(name: 'Refresh', defaultValue: false, description: 'Перезагрузка параметров')
     }
     environment {
@@ -32,7 +33,6 @@ pipeline {
 
         APP_NETWORK='app_net'
         APP_HOST='app'
-        BACKUP_DIR='/media/hdd/backUp'
     }
     stages {
         stage('Перезагрузка параметров') {
@@ -58,6 +58,9 @@ pipeline {
                     withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
                         remote.identityFile = sshKey
                         sshCommand remote: remote, command: "rm -rf ${ROOT_APP_DIR}"
+                        if (params.rmDB == true) {
+                            sshCommand remote: remote, command: "rm -rf ${POSTGRES_DIR}"
+                        }
                     }
                 }
             }
