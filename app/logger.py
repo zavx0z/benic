@@ -9,7 +9,7 @@ class SIOFormatter(logging.Formatter):
         username, result = record.args
         action = f"{record.msg} {getattr(record, 'action', '')}"
         message = f"{action:20}{username:40} {result:40}{record.funcName:30}[{record.lineno:4}]{record.filename:20}{record.pathname}"
-        return f"{timestamp} - {record.levelname} - {message}"
+        return f"{timestamp} - {record.levelname:5} - {message}"
 
 
 class ActionFormatter(logging.Formatter):
@@ -19,9 +19,9 @@ class ActionFormatter(logging.Formatter):
         username, sid, action, channel, room = record.args
         message = f"|{record.msg:^6}|{username:^22}|{sid:^20}|{action.upper():^10}|{channel:^10}|{room:^20}|"
 
-        call_position = f"{record.funcName:>22}[{record.lineno:^4}]{record.pathname}"
+        call_position = f"{record.funcName}[{record.lineno:^4}]{record.pathname}"
 
-        return f"{timestamp} - {record.levelname} - {message}{call_position}"
+        return f"{timestamp} - {record.levelname:5} - {message}{call_position}"
 
 
 conf = {
@@ -90,7 +90,7 @@ conf = {
 
 # Настраиваем логгер Socket.IO
 socketio_logger = logging.getLogger('socketio')
-socketio_logger.setLevel(logging.DEBUG)
+socketio_logger.setLevel(logging.WARNING)
 # Создаем обработчик логов для вывода сообщений в консоль
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.DEBUG)
