@@ -1,13 +1,14 @@
 import logging
 
+from chat.actions import GET
+from chat.channels import CHANNEL_CHAT
 from chat.crud.dialog import get_messages_count
 from chat.query.dialogs_statistics import get_user_dialog_statistics
 from chat.schema import ChatPayload
 from chat.schema.clientresponse import ClientResponse
 from shared.socketio.connect import sio
 
-logger = logging.getLogger('sio')
-logger_chat = logging.getLogger('chat')
+logger = logging.getLogger('action')
 
 
 # async_event_manager.subscribe('dialog_created', my_function)
@@ -20,20 +21,21 @@ async def send_admin_is_first_message_support_dialog(user, dialog_id):
 
 @sio.on('chat')
 async def read_message(sid: str, payload: ChatPayload):
-    logger_chat.debug(payload)
     user = await sio.get_session(sid)
     payload = ChatPayload(**payload)
-    if payload.action == 'init':
+    if payload.action == GET:
         result = await get_user_dialog_statistics(user.id)
-        await sio.emit('chat', {
-            "action": 'init',
+        await sio.emit(CHANNEL_CHAT, {
+            "action": GET,
             "data": [dict(item) for item in result]
         }, room=sid)
+        logger.info(user.id, user.username, sid, GET, CHANNEL_CHAT, sid)
 
 
 @sio.on("joinDialog")
 async def join_dialog(sid, dialog_id):
-    print(f"{sid} enter dialog {dialog_id}")
+    user = await sio.get_session(sid)
+    # action_logger.info(user.id, user.username, sid, 'JOIN', 'dialog', dialog_id)
     sio.enter_room(sid, dialog_id)
 
 # await sio.emit('support', message, room=dialog.id)

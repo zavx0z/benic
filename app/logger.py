@@ -3,7 +3,7 @@ import sys
 from datetime import datetime
 
 
-class MyFormatter(logging.Formatter):
+class SIOFormatter(logging.Formatter):
     def format(self, record):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f')[:-3]
         username, result = record.args
@@ -12,12 +12,27 @@ class MyFormatter(logging.Formatter):
         return f"{timestamp} - {record.levelname} - {message}"
 
 
+class ActionFormatter(logging.Formatter):
+    def format(self, record):
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f')[:-3]
+
+        username, sid, action, channel, room = record.args
+        message = f"|{record.msg:^6}|{username:^22}|{sid:^20}|{action.upper():^10}|{channel:^10}|{room:^20}|"
+
+        call_position = f"{record.funcName:>22}[{record.lineno:^4}]{record.pathname}"
+
+        return f"{timestamp} - {record.levelname} - {message}{call_position}"
+
+
 conf = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
         'sio_formatter': {
-            '()': MyFormatter
+            '()': SIOFormatter
+        },
+        'actionFormatter': {
+            '()': ActionFormatter
         },
         'chat_formatter': {
             'format': '{asctime} - {levelname} - {message}',
@@ -29,6 +44,16 @@ conf = {
             'class': 'logging.StreamHandler',
             'stream': sys.stdout,
             'formatter': 'sio_formatter'
+        },
+        'actionConsole': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+            'formatter': 'actionFormatter'
+        },
+        'actionFile': {
+            'class': 'logging.FileHandler',
+            'filename': 'app.log',
+            'formatter': 'actionFormatter'
         },
         "chat_handler": {
             'class': 'logging.StreamHandler',
@@ -47,6 +72,13 @@ conf = {
             'handlers': [
                 'sio_handler',
                 'file',
+            ]
+        },
+        'action': {
+            'level': 'DEBUG',
+            'handlers': [
+                'actionConsole',
+                'actionFile',
             ]
         },
         'chat': {

@@ -7,7 +7,6 @@ from chat.schema import ChatPayload
 from shared.socketio.connect import sio
 
 logger = logging.getLogger('chat')
-logger.info('hello')
 
 
 @sio.on(CHANNEL_USERS)
