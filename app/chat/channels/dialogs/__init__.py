@@ -8,7 +8,7 @@ from shared.socketio.connect import sio
 from .connect import after_connect
 from .get import get_dialog
 from .hooks import after_create_user
-from .join import join_dynamic_dialog
+from .join import join_dialog_dynamic_room
 from .leave import leave_dialog_dynamic_room
 from .read import read
 from .write import write_message
@@ -27,7 +27,7 @@ async def channel_dialog(sid: str, payload: ChatPayload):  # todo: переда�
     user = await sio.get_session(sid)
     dialog_id = payload.data.get('dialogId')
     if JOIN == payload.action:
-        await join_dynamic_dialog(user, dialog_id)
+        await join_dialog_dynamic_room(user, dialog_id)
         await get_dialog(user, dialog_id)
     elif LEAVE == payload.action:
         leave_dialog_dynamic_room(user, dialog_id)

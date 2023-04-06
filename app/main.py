@@ -1,4 +1,3 @@
-from dramatiq_abort import abort
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -15,8 +14,8 @@ import chat.socketio
 import chat.channels.dialogs
 import chat.channels.users
 from task.routes import router as task_router
-from worker import tail_logs, get_running_tasks
 from workspace.routes import router as workspace_router
+from log.routes import router as log_router
 
 app = FastAPI()
 app.add_middleware(
@@ -28,20 +27,6 @@ app.add_middleware(
 )
 
 message_id = None  # Инициализация переменной фоновой задачи
-
-
-@app.post("/api.v1/log/start")
-def start_tail_logs():
-    tasks = get_running_tasks()
-    if not any(task.actor_name for task in tasks):
-        tail_logs.send('app.log')
-
-
-@app.post("/api.v1/log/stop")
-def stop_tail_logs():
-    tasks = get_running_tasks()
-    task = next(filter(lambda v: v.actor_name == 'tail_logs', tasks), None)
-    abort(message_id=task.message_id)
 
 
 class Settings(BaseModel):
@@ -62,13 +47,16 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
 
 
+# AUTH
 app.include_router(login.router)
 app.include_router(join.router)
 app.include_router(user.router)
 app.include_router(refresh.router)
+
 app.include_router(app_router)
 app.include_router(server_router)
 app.include_router(workspace_router)
 app.include_router(task_router)
+app.include_router(log_router)
 
 app.mount('/', sio_app)

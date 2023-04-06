@@ -20,6 +20,7 @@ external_sio = socketio.RedisManager(f"{REDIS_HOST}:{REDIS_PORT}", write_only=Tr
 
 broker = RedisBroker(url=f"{REDIS_HOST}:{REDIS_PORT}/1")
 broker.add_middleware(Abortable(backend=dramatiq_abort.backends.RedisBackend(client=broker.client)))
+# broker.add_middleware(Results(backend=RedisBackend(url=f"{REDIS_HOST}:{REDIS_PORT}/2")))
 dramatiq.set_broker(broker)
 
 
@@ -42,7 +43,7 @@ def get_running_tasks() -> List[TaskInfo]:
     return tasks_info
 
 
-@dramatiq.actor(time_limit=float("inf"), max_retries=2)
+@dramatiq.actor(time_limit=float("inf"), max_retries=0)
 def tail_logs(log_file_path):
     # connect to the redis queue as an external process
     # emit an event
@@ -51,9 +52,10 @@ def tail_logs(log_file_path):
         last_lines = tailer.tail(file, 100)
         for line in last_lines:
             external_sio.emit('log', line)
-    try:
-        # запускаем чтение лог-файла в режиме tail
-        for line in tailer.follow(open(log_file_path)):
+    # запускаем чтение лог-файла в режиме tail
+    with open(log_file_path) as file:
+        for line in tailer.follow(file):
+            if dramatiq_abort.abort_requested():
+                print('Aborted tail_logs task')
+                break  # прерываем операцию tail при запросе аборта
             external_sio.emit('log', line)
-    except Exception as e:
-        print('Cancelled')

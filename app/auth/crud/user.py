@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from auth.models import User
+from shared.db import async_session
 
 
 async def create_user(engine, user_data):
@@ -12,14 +13,6 @@ async def create_user(engine, user_data):
         session.add(user)
         await session.commit()
         await session.refresh(user)
-    return user
-
-
-async def get_user(engine, user_id):
-    async with engine.begin() as conn:
-        session = AsyncSession(bind=conn, selectinload(User.dialogs))
-        result = await session.execute(select(User).filter_by(id=user_id))
-        user = result.scalars().first()
     return user
 
 
@@ -41,3 +34,15 @@ async def delete_user(engine, user_id):
         if user is not None:
             session.delete(user)
             await session.commit()
+
+
+async def get_user(pk):
+    async with async_session() as session:
+        # result = await session.execute(select(User).options(joinedload(User.dialogs)).where(User.id == pk))
+        result = await session.execute(select(User).where(User.id == pk))
+        user = result.scalars().first()
+        if not user:
+            return None
+        else:
+            await session.refresh(user)
+            return user

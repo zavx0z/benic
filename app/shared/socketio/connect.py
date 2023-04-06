@@ -8,7 +8,7 @@ from chat.schema import SessionUser
 from config import ASYNC_REDIS_MANAGER
 from events import async_event_manager, SIO_DISCONNECT, SIO_CONNECT
 from logger import socketio_logger
-from shared.crud import get_user
+from auth.crud.user import get_user
 from shared.socketio.header_utils import user_device_from_header_auth, get_access_token
 
 sio = socketio.AsyncServer(
