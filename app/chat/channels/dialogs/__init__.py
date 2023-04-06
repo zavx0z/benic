@@ -11,7 +11,7 @@ from .hooks import after_create_user
 from .join import join_dialog_dynamic_room
 from .leave import leave_dialog_dynamic_room
 from .read import read
-from .write import write_message
+from .write import receiving_message
 
 logger = logging.getLogger('sio')
 
@@ -34,4 +34,4 @@ async def channel_dialog(sid: str, payload: ChatPayload):  # todo: переда�
     elif READ == payload.action:  # Установка статуса ПРОЧИТАНО для сообщений отправителя
         await read(user, dialog_id, message_ids=payload.data.get('messageIds'))
     elif WRITE == payload.action:
-        await write_message(user, dialog_id, text=payload.data.get("text"))
+        await receiving_message(user, dialog_id, text=payload.data.get("text"))

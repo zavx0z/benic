@@ -25,3 +25,5 @@ async def update_user_status_from_dialog_participant(user):
                     "data": dict(self_participant),
                 })
             logger.info(user.id, user.username, user.sid, UPDATE, CHANNEL_USERS, room)
+
+
