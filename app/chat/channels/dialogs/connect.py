@@ -2,7 +2,8 @@ import logging
 
 from auth.models import Role
 from chat.actions import JOIN
-from chat.channels import STATIC_DIALOG, CHANNEL_DIALOG
+from chat.channels import CHANNEL_DIALOG
+from chat.channels.dialogs.join import join_dialog_static_room
 from chat.crud.dialog import get_dialogs_by_user_id
 from config import ADMIN_ORIGIN
 from shared.socketio.connect import sio
@@ -26,6 +27,4 @@ async def after_connect(sid):
     dialogs = await get_dialogs_by_user_id(user.id)
     # ИНФОРМАЦИОННЫЙ подписывает к комнате Диалога где присутствуют User
     for dialog in dialogs:
-        room = STATIC_DIALOG(dialog.id)
-        sio.enter_room(user.sid, room)
-        logger.info(user.id, user.username, user.sid, JOIN, CHANNEL_DIALOG, room)
+        join_dialog_static_room(user, dialog.id)

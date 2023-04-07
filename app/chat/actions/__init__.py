@@ -1,5 +1,7 @@
 GET = 'get'
+PUT = 'put'
 JOIN = 'join'
+JOIN_STATIC = 'joinStatic'
 UPDATE = 'update'
 LEAVE = 'leave'
 READ = 'read'

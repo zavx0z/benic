@@ -2,7 +2,8 @@ import logging
 
 from auth.models import Role
 from chat.actions import UPDATE, WRITE
-from chat.channels import CHANNEL_DIALOG, DYNAMIC_DIALOG, STATIC_DIALOG
+from chat.actions.support import emit_admin_update_chat
+from chat.channels import CHANNEL_DIALOG, DYNAMIC_DIALOG, STATIC_DIALOG, CHANNEL_SUPPORT
 from chat.crud.dialog import get_dialog_by_id, get_messages_count
 from chat.crud.message import create_message
 from chat.models.message import Message
@@ -65,24 +66,12 @@ async def receiving_message(user, dialog_id, text):
     - рассылка сообщения
     """
     dialog = await get_dialog_by_id(dialog_id)
-    if 'subscribe' == dialog.name and user.role.value > Role.developer.value:
-        count_messages = await get_messages_count(dialog_id)
-        if count_messages == 2:
-            pass
-            # await sio.emit('clients', dict(ClientResponse(id=user.id, username=user.username, dialogId=dialog_id)))
-            # dialog_participants = await get_users_by_dialog_ids([dialog_id])
-            # participant = next(filter(lambda inst: inst.id == user.id, dialog_participants), None)
-            # room = STATIC_USERS(1)
-            # await sio.emit(
-            #     event=CHANNEL_USERS,
-            #     room=room,
-            #     data={
-            #         "action": 'add',
-            #         "data": dict(participant),
-            #     })
-            # logger.info(user.id, user.username, user.sid, 'add', CHANNEL_USERS, room)
-
     message = await create_message(text=text, sender_id=user.id, dialog_id=dialog.id)
 
+    if CHANNEL_SUPPORT == dialog.name and user.role.value <= Role.developer.value:
+        count_messages = await get_messages_count(dialog_id)
+        if count_messages == 2:
+            await emit_admin_update_chat(user.id, dialog.id, message)
+            return
     await send_msg_detail_to_dialog_participants(user, dialog_id, message)
     await send_msg_info_to_dialog_participants(user, dialog_id, message)
