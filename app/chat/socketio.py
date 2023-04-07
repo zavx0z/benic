@@ -16,6 +16,10 @@ async def chat(sid: str, payload: ChatPayload):
     payload = ChatPayload(**payload)
     if payload.action == GET:
         result = await get_user_dialog_statistics(user.id)
+
+        if user.role.value > 3:  # todo в запросе данных делать проверку на обращение клиента
+            result = [item for item in result if item.totalMessages >= 2]
+
         await sio.emit(CHANNEL_CHAT, {
             "action": GET,
             "data": [dict(item) for item in result]
