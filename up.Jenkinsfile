@@ -26,6 +26,8 @@ pipeline {
         string( name: 'JWT_SECRET_KEY', defaultValue: "adkngdfFDGSDFqhnlakjflorqirefOJ;SJDG")
 
         booleanParam(name: 'rmDB', defaultValue: false, description: 'Очистить базу данных')
+        string( name: 'SUPERUSER_PASSWORD', defaultValue: "", description: 'Пароль суперпользователя')
+
         booleanParam(name: 'Refresh', defaultValue: false, description: 'Перезагрузка параметров')
     }
     environment {
@@ -117,9 +119,15 @@ REDIS_PORT=${env.REDIS_PORT}
             when { expression { return params.Refresh == false } }
             steps {
                 withCredentials([sshUserPrivateKey(credentialsId: 'repozitarium', keyFileVariable: 'sshKey')]) {
-                    script { remote.identityFile = sshKey }
-                    sshCommand remote: remote, command: "docker-compose -f ${ROOT_APP_DIR}/docker-compose.yml up -d"
-                    sshCommand remote: remote, command: "docker start nginx"
+                    script {
+                        remote.identityFile = sshKey
+                        sshCommand remote: remote, command: "docker-compose -f ${ROOT_APP_DIR}/docker-compose.yml up -d"
+                        sshCommand remote: remote, command: "docker start nginx"
+                        if (params.rmDB == true) {
+                            sleep(time: 4, unit: "SECONDS")
+                            sshCommand remote: remote, command: "docker exec app python createsuperuser.py zavx0z ${SUPERUSER_PASSWORD}"
+                        }
+                    }
                 }
             }
         }

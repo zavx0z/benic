@@ -4,7 +4,6 @@ from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, PrimaryKey
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 
-from auth.models import User
 from shared import Base
 
 
@@ -40,5 +39,5 @@ class MessageReaders(Base):
     read_time = Column(DateTime, default=datetime.utcnow, nullable=False)
 
     message = relationship(Message, back_populates="readers_association", overlaps="read_message")
-    user = relationship(User)
+    user = relationship("User")
     __table_args__ = (PrimaryKeyConstraint('message_id', 'user_id'),)

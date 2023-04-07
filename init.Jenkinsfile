@@ -11,6 +11,7 @@ pipeline {
         disableConcurrentBuilds(abortPrevious: true)
     }
     parameters {
+        string( name: 'SUPERUSER_PASSWORD', defaultValue: "", description: 'Пароль суперпользователя')
         string( name: 'IP', defaultValue: "95.163.235.179", description: 'IP-адрес сервера')
         string( name: 'STORE_DIR', defaultValue: "/store")
         string( name: 'DOMAIN', defaultValue: "zavx0z.com")

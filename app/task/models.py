@@ -4,7 +4,6 @@ from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Enum
 
-from app.models import App
 from core.models.task import BaseModelTask
 from shared import Base
 
@@ -29,4 +28,4 @@ class Task(Base, BaseModelTask):
     status = Column(Enum(TaskStatus), default=TaskStatus.NEW, nullable=False)
 
     app_id = Column(Integer, ForeignKey("app.id"))
-    app = relationship(App, back_populates="tasks")
+    app = relationship("App", back_populates="tasks")

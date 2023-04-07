@@ -48,7 +48,7 @@ alembic init -t async migrations
 ```
 
 ```shell
-alembic revision --autogenerate -m 'User'
+alembic revision --autogenerate -m 'init'
 ```
 
 ```shell

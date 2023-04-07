@@ -4,14 +4,14 @@ uvicorn[standard]==0.21.1
 python-socketio==5.8.0
 aioredis
 
-SQLAlchemy==2.0.8
-asyncpg~=0.27.0
-alembic==1.10.2
+SQLAlchemy==2.0.9
+asyncpg==0.27.0
+alembic==1.10.3
 
-fastapi_jwt_auth~=0.5
-passlib~=1.7.4
+fastapi_jwt_auth==0.5
+passlib==1.7.4
 
-python-dotenv~=1.0.0
+python-dotenv==1.0.0
 
 dramatiq[redis, watch]
 dramatiq-abort[redis]

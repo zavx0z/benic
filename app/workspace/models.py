@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
 
+from server.models import WorkspaceServerAssociation
 from shared import Base
 
 
@@ -10,6 +11,7 @@ class WorkspaceUserAssociation(Base):
     user_id = Column(Integer, ForeignKey("user.id"), primary_key=True)
     user = relationship("User", back_populates="workspaces")
     workspace = relationship("Workspace", back_populates="users")
+
 
 class Workspace(Base):
     __tablename__ = "workspace"
@@ -22,5 +24,5 @@ class Workspace(Base):
 
     owner = relationship("User")
     owner_id = Column(Integer, ForeignKey("user.id"))
-    users = relationship("WorkspaceUserAssociation", back_populates="workspace")
-    servers = relationship("WorkspaceServerAssociation", back_populates="workspace")
+    users = relationship(WorkspaceUserAssociation, back_populates="workspace")
+    servers = relationship(WorkspaceServerAssociation, back_populates="workspace")

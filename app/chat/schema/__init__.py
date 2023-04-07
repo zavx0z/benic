@@ -2,11 +2,13 @@ from typing import Optional, Union
 
 from pydantic import BaseModel
 
+from auth.models import Role
+
 
 class SessionUser(BaseModel):
     id: int
     username: str
-    is_superuser: bool
+    role: Role
     device_id: int
     sid: str
 

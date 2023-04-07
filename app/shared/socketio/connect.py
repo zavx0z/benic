@@ -54,7 +54,7 @@ async def connect(sid, environ, auth):
             sid=sid,
             id=user.id,
             username=user.username,
-            is_superuser=user.is_superuser,
+            role=user.role,
             device_id=device.id
         ))
         logger.info(user.id, user.username, sid, CONNECT, device_info.os, device_info.model)

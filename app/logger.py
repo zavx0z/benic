@@ -90,7 +90,7 @@ conf = {
 
 # Настраиваем логгер Socket.IO
 socketio_logger = logging.getLogger('socketio')
-socketio_logger.setLevel(logging.DEBUG)
+socketio_logger.setLevel(logging.WARNING)
 # Создаем обработчик логов для вывода сообщений в консоль
 console_handler = logging.StreamHandler()
 console_handler.setLevel(logging.DEBUG)

@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from auth.models import User
+from auth.models import User, Role
 from auth.schema import UserData
 from auth.token import create_access_token
 from events import async_event_manager, DB_CREATE_USER
@@ -29,9 +29,9 @@ async def get_user(db: AsyncSession, username: str):
     return user
 
 
-async def create_user(db: AsyncSession, username: str, password: str):
+async def create_user(db: AsyncSession, username: str, password: str, role=Role.client):
     hashed_password = pwd_context.hash(password)  # Создаем нового пользователя
-    user = User(username=username, hashed_password=hashed_password)
+    user = User(username=username, hashed_password=hashed_password, role=role)
     db.add(user)
     await db.commit()
     await db.refresh(user)

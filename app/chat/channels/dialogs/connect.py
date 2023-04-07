@@ -1,5 +1,6 @@
 import logging
 
+from auth.models import Role
 from chat.actions import JOIN
 from chat.channels import STATIC_DIALOG, CHANNEL_DIALOG
 from chat.crud.dialog import get_dialogs_by_user_id
@@ -13,7 +14,7 @@ async def check_user_dialog_permissions(user, environ, sid):
     """Проверка прав доступа пользователя к диалогам.
     Если админ зашел из клиентской части
     """
-    if user.is_superuser and not any(origin in environ.get("HTTP_ORIGIN") for origin in ADMIN_ORIGIN):
+    if user.role.value > Role.developer.value and not any(origin in environ.get("HTTP_ORIGIN") for origin in ADMIN_ORIGIN):
         msg = "В чате диалоги только для клиентов."
         await sio.emit('error', {"message": msg, "type": "warning"}, room=sid)
         logger.warning(user.id, user.username, user.sid, JOIN, CHANNEL_DIALOG, msg)

@@ -1,19 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
 
 from auth.models import User
 from shared.db import async_session
-
-
-async def create_user(engine, user_data):
-    async with engine.begin() as conn:
-        session = AsyncSession(bind=conn)
-        user = User(username=user_data["username"], email=user_data["email"], hashed_password=user_data["password"])
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
-    return user
 
 
 async def update_user(engine, user_id, user_data):

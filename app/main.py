@@ -8,6 +8,7 @@ from pydantic.main import BaseModel
 from app.routes import router as app_router
 from auth.routes import refresh, login, user, join
 from config import JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
+from log.routes import router as log_router
 from server.routes import router as server_router
 from shared.socketio.connect import sio_app, sio
 import chat.socketio
@@ -15,7 +16,6 @@ import chat.channels.dialogs
 import chat.channels.users
 from task.routes import router as task_router
 from workspace.routes import router as workspace_router
-from log.routes import router as log_router
 
 app = FastAPI()
 app.add_middleware(

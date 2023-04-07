@@ -1,5 +1,6 @@
 import logging
 
+from auth.models import Role
 from chat.actions import UPDATE, WRITE
 from chat.channels import CHANNEL_DIALOG, DYNAMIC_DIALOG, STATIC_DIALOG
 from chat.crud.dialog import get_dialog_by_id, get_messages_count
@@ -64,7 +65,7 @@ async def receiving_message(user, dialog_id, text):
     - рассылка сообщения
     """
     dialog = await get_dialog_by_id(dialog_id)
-    if 'subscribe' == dialog.name and not user.is_superuser:
+    if 'subscribe' == dialog.name and user.role.value > Role.developer.value:
         count_messages = await get_messages_count(dialog_id)
         if count_messages == 2:
             pass

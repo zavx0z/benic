@@ -1,6 +1,6 @@
 from sqlalchemy import select
 
-from auth.models import User
+from auth.models import User, Role
 from chat.models.message import Message
 from shared.db import async_session
 
@@ -10,7 +10,7 @@ async def get_users_with_messages_by_owner_dialogs():
         stmt = (
             select(User)
             .join(Message)
-            .filter(User.is_superuser == False)
+            .filter(User.role == Role.client.value)
             .filter(Message.sender_id == User.id)
             .distinct()
         )

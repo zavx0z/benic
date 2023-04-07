@@ -3,6 +3,7 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
+from chat.models.message import Message
 from shared import Base
 
 
@@ -15,7 +16,7 @@ class Dialog(Base):
 
     owner = relationship("User", back_populates="owner_dialogs")
     participants = relationship("DialogParticipant", back_populates="dialog")
-    messages = relationship("Message", backref='dialog')
+    messages = relationship(Message, backref='dialog')
 
     def __str__(self):
         return f"{self.name}_{self.owner_id}"
