@@ -16,9 +16,9 @@ from server.models import Server
 from task.models import Task
 from workspace.models import Workspace
 
-from resource.models.server import ServerResource
-from resource.models.app import AppResource
-from resource.models.task import TaskResource
+from resources.models.server import ServerResource
+from resources.models.app import AppResource
+from resources.models.task import TaskResource
 
 from core.models.provider import *
 # this is the Alembic Config object, which provides
