@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from auth.models import User, Role
-from auth.schema import UserData
+from auth.schema.user import UserWithTokenSchema
 from auth.token import create_access_token
 from events import async_event_manager, DB_CREATE_USER
 from shared.db import get_db
@@ -39,7 +39,7 @@ async def create_user(db: AsyncSession, username: str, password: str, role=Role.
 
 
 @router.post("/api.v1/join")
-async def register(item: Credentials, db=Depends(get_db), authjwt: AuthJWT = Depends()) -> UserData:
+async def register(item: Credentials, db=Depends(get_db), authjwt: AuthJWT = Depends()) -> UserWithTokenSchema:
     """Регистрация нового пользователя"""
     user = await get_user(db, item.username)
     if user:
@@ -48,9 +48,10 @@ async def register(item: Credentials, db=Depends(get_db), authjwt: AuthJWT = Dep
     access_token = create_access_token(user.id, authjwt)  # Генерируем токен авторизации
     refresh_token = authjwt.create_refresh_token(subject=user.id)  # Генерируем токен обновления
     await async_event_manager.notify(DB_CREATE_USER, user.id)  # Событие менеджеру
-    return UserData(
+    return UserWithTokenSchema(
         id=user.id,
         username=user.username,
         accessToken=access_token,
-        refreshToken=refresh_token
+        refreshToken=refresh_token,
+        role=user.role.name
     )

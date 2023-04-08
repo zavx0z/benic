@@ -5,8 +5,8 @@ from pydantic import BaseModel
 from sqlalchemy import select
 
 from auth.models import User
+from auth.schema.user import UserWithTokenSchema
 from auth.token import create_access_token
-from auth.schema import UserData
 from shared.db import get_db
 
 router = APIRouter()
@@ -32,7 +32,7 @@ class Request(BaseModel):
 
 
 @router.post("/api.v1/login")
-async def login(item: Request, db=Depends(get_db), authjwt: AuthJWT = Depends()) -> UserData:
+async def login(item: Request, db=Depends(get_db), authjwt: AuthJWT = Depends()) -> UserWithTokenSchema:
     """Аутентификация и выдача токена"""
     user = await authenticate_user(item.username, item.password, db)
     if not user:
@@ -40,10 +40,10 @@ async def login(item: Request, db=Depends(get_db), authjwt: AuthJWT = Depends())
     access_token = create_access_token(user.id, authjwt)  # Генерируем токен авторизации
     refresh_token = authjwt.create_refresh_token(subject=user.id)  # Генерируем токен обновления
     # save_refresh_token(refresh_token, db)
-    return UserData(
+    return UserWithTokenSchema(
         id=user.id,
         username=user.username,
         accessToken=access_token,
         refreshToken=refresh_token,
-        status=200
+        role=user.role.name
     )

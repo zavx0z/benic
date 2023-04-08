@@ -2,18 +2,13 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import FreshTokenRequired
-from pydantic.main import BaseModel
 from sqlalchemy import select
 
 from auth.models import User
+from auth.schema.user import UserSchema
 from shared.db import get_db
 
 router = APIRouter()
-
-
-class ItemUser(BaseModel):
-    id: int
-    username: str
 
 
 @router.get("/api.v1/user")
@@ -26,7 +21,11 @@ async def get_user(authjwt: AuthJWT = Depends(), db=Depends(get_db)):
         result = await db.execute(stmt)
         user = result.scalars().first()
         if user:
-            return ItemUser(id=user.id, username=user.username)
+            return UserSchema(
+                id=user.id,
+                username=user.username,
+                role=user.role.name
+            )
     except FreshTokenRequired:
         return JSONResponse(
             status_code=401,
