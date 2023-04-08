@@ -1,3 +1,4 @@
+import enum
 from datetime import datetime
 
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
@@ -5,6 +6,10 @@ from sqlalchemy.orm import relationship
 
 from chat.models.message import Message
 from shared import Base
+
+
+class TypeDialog(enum.Enum):  # todo type dialog
+    support = 'support'
 
 
 class Dialog(Base):

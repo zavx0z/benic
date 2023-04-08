@@ -65,7 +65,7 @@ async def get_users_by_dialog_ids(dialog_ids: List[int]) -> List[UserChat]:
                 id=row[1],
                 lastVisit=datetime.isoformat(row[2]) if row[2] is not None else None,
                 isConnected=row[3],
-                deviceModel=row[4] and row[4] or row[5],
+                deviceModel=row[5],
                 isMobile=row[6]
             ) for row in result.fetchall()]
         except SQLAlchemyError as e:
