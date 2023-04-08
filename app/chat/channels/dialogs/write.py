@@ -72,6 +72,7 @@ async def receiving_message(user, dialog_id, text):
         count_messages = await get_messages_count(dialog_id)
         if count_messages == 2:
             await emit_admin_update_chat(user.id, dialog.id, message)
+            await send_msg_detail_to_dialog_participants(user, dialog_id, message)
             return
     await send_msg_detail_to_dialog_participants(user, dialog_id, message)
     await send_msg_info_to_dialog_participants(user, dialog_id, message)
