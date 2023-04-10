@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
-from fastapi_jwt_auth import AuthJWT
-from fastapi_jwt_auth.exceptions import FreshTokenRequired
+from fastapi_another_jwt_auth import AuthJWT
+from fastapi_another_jwt_auth.exceptions import FreshTokenRequired
 from sqlalchemy import select
 
 from sso.models import User

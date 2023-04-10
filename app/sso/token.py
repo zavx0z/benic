@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 import jwt
-from fastapi_jwt_auth import AuthJWT
+from fastapi_another_jwt_auth import AuthJWT
 from jwt import InvalidTokenError
 
 from config import ACCESS_TOKEN_EXPIRE_MINUTES, JWT_SECRET_KEY

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from fastapi_jwt_auth import AuthJWT
+from fastapi_another_jwt_auth import AuthJWT
 
 from client.query import get_or_add_user_device, update_device_notification_token
 from client.utils import device_from_client

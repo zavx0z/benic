@@ -10,8 +10,7 @@ SQLAlchemy==2.0.9
 asyncpg==0.27.0
 alembic==1.10.3
 
-pyjwt[crypto]==2.6.0
-fastapi_jwt_auth==0.5
+fastapi-another-jwt-auth
 passlib==1.7.4
 
 python-dotenv==1.0.0

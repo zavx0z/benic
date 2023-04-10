@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi_jwt_auth import AuthJWT
+from fastapi_another_jwt_auth import AuthJWT
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy import select

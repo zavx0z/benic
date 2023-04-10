@@ -1,8 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi_jwt_auth import AuthJWT
-from fastapi_jwt_auth.exceptions import AuthJWTException
+from fastapi_another_jwt_auth import AuthJWT
+from fastapi_another_jwt_auth.exceptions import AuthJWTException
 from pydantic.main import BaseModel
 from fastapi.staticfiles import StaticFiles
 from app.routes import router as app_router
