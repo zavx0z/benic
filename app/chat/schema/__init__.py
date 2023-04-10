@@ -2,7 +2,7 @@ from typing import Optional, Union
 
 from pydantic import BaseModel
 
-from auth.models import Role
+from sso.models import Role
 
 
 class SessionUser(BaseModel):

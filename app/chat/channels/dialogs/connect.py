@@ -1,12 +1,12 @@
 import logging
 
-from auth.models import Role
+from sso.models import Role
 from chat.actions import JOIN
 from chat.channels import CHANNEL_DIALOG
 from chat.channels.dialogs.join import join_dialog_static_room
 from chat.crud.dialog import get_dialogs_by_user_id
 from config import ADMIN_ORIGIN
-from shared.socketio.connect import sio
+from shared.socketio import sio
 
 logger = logging.getLogger('action')
 

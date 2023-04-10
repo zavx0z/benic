@@ -41,6 +41,8 @@ pipeline {
 
         REMOTE_ENV_PATH = "${ROOT_APP_DIR}/app/.env"
         LOCAL_ENV_PATH = "${WORKSPACE}/.env"
+
+        zavx0z_home = "/home/zavx0z"
     }
     stages {
         stage('Перезагрузка параметров') {
@@ -51,6 +53,7 @@ pipeline {
             when { expression { return params.Refresh == false } }
             steps {
                 sh script: "rm ${LOCAL_ENV_PATH}"
+                sh script: "cp ${zavx0z_home}/serviceAccountKey.json ${WORKSPACE}/app/serviceAccountKey.json"
                 writeFile file: LOCAL_ENV_PATH,
                 text: """
 POSTGRES_DIR=${env.POSTGRES_DIR}

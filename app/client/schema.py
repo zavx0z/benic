@@ -3,7 +3,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class DeviceBase(BaseModel):
+class DeviceClientSchema(BaseModel):
     user_agent: Optional[str]
     is_mobile: bool = False
     vendor: Optional[str]

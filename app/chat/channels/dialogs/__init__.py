@@ -4,7 +4,7 @@ from chat.actions import JOIN, LEAVE, READ, WRITE, JOIN_STATIC
 from chat.channels import CHANNEL_DIALOG
 from chat.schema import ChatPayload
 from events import async_event_manager, SIO_CONNECT, DB_CREATE_USER
-from shared.socketio.connect import sio
+from shared.socketio import sio
 from .connect import after_connect
 from .get import get_dialog
 from .hooks import after_create_user

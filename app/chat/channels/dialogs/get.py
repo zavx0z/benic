@@ -1,9 +1,9 @@
 import logging
 
-from chat.actions import JOIN, GET
+from chat.actions import GET
 from chat.channels import DYNAMIC_DIALOG, CHANNEL_DIALOG
 from chat.query.select import get_messages_for_dialog
-from shared.socketio.connect import sio
+from shared.socketio import sio
 
 logger = logging.getLogger('action')
 

@@ -2,7 +2,7 @@ from typing import List
 
 from sqlalchemy import select
 
-from auth.models import User
+from sso.models import User
 from chat.models.message import Message, MessageReaders
 from chat.schema.message import MessageResponse
 from chat.schema.users import UserChat

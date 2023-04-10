@@ -1,11 +1,11 @@
 import logging
 
-from auth.crud.user import get_user
+from sso.crud.user import get_user
 from chat.actions import UPDATE
 from chat.channels import STATIC_USER, CHANNEL_CHAT
 from chat.query.users_for_dialogs import get_users_by_dialog_ids
 from config import ADMIN_ID
-from shared.socketio.connect import sio
+from shared.socketio import sio
 
 logger = logging.getLogger('action')
 

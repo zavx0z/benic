@@ -7,7 +7,7 @@ from chat.channels.users.disconnect import after_disconnect
 from chat.channels.users.get import get_for_user_all_contacted_users
 from chat.schema import ChatPayload
 from events import async_event_manager, SIO_CONNECT, SIO_DISCONNECT
-from shared.socketio.connect import sio
+from shared.socketio import sio
 
 logger = logging.getLogger('action')
 

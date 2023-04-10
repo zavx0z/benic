@@ -5,7 +5,7 @@ from chat.channels import CHANNEL_CHAT
 from chat.channels.users.update import logger
 from chat.query.dialogs_statistics import get_user_dialogs_statistics
 from chat.schema import ChatPayload
-from shared.socketio.connect import sio
+from shared.socketio import sio
 
 logger = logging.getLogger('action')
 

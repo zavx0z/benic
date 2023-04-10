@@ -4,9 +4,9 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy import select
 
-from auth.models import User
-from auth.schema.user import UserWithTokenSchema
-from auth.token import create_access_token
+from sso.models import User
+from sso.schema.user import UserWithTokenSchema
+from sso.token import create_access_token
 from shared.db import get_db
 
 router = APIRouter()

@@ -3,7 +3,7 @@ from typing import List
 
 from chat.actions import LEAVE
 from chat.channels import DYNAMIC_DIALOG, CHANNEL_DIALOG, STATIC_DIALOG
-from shared.socketio.connect import sio
+from shared.socketio import sio
 
 logger = logging.getLogger('action')
 

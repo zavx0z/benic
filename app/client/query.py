@@ -1,12 +1,12 @@
 from sqlalchemy import select, update, and_
 from sqlalchemy.exc import IntegrityError
 
-from auth.models import Device
-from auth.schema.device import DeviceBase
+from client.models import Device
+from client.schema import DeviceClientSchema
 from shared.db import async_session
 
 
-async def get_or_add_user_device(user_id: int, data_device: DeviceBase):
+async def get_or_add_user_device(user_id: int, data_device: DeviceClientSchema):
     """
     Добавляет новое устройство для пользователя, если оно еще не существует.
     """
@@ -56,15 +56,27 @@ async def update_device_status(user_id: int, device_id: int, is_connected: bool)
     Обновляет статус подключения устройства.
     """
     async with async_session() as session:
-        # Обновляем статус устройства
-        stmt = (
-            update(
-                Device
-            )
+        await session.execute(
+            update(Device)
             .where(Device.id == device_id)
             .values(is_connected=is_connected)
         )
-        await session.execute(stmt)
+        await session.commit()
+        # Получаем обновленное устройство из базы данных
+        device = await session.get(Device, device_id)
+        return device
+
+
+async def update_device_notification_token(device_id: int, notification_token: str):
+    """
+    Обновляет токен firebase.
+    """
+    async with async_session() as session:
+        await session.execute(
+            update(Device)
+            .where(Device.id == device_id)
+            .values(notification_token=notification_token)
+        )
         await session.commit()
         # Получаем обновленное устройство из базы данных
         device = await session.get(Device, device_id)

@@ -3,7 +3,7 @@ import logging
 from chat.actions import READ
 from chat.channels import CHANNEL_DIALOG, DYNAMIC_DIALOG
 from chat.query.insert import set_messages_read
-from shared.socketio.connect import sio
+from shared.socketio import sio
 
 logger = logging.getLogger('action')
 

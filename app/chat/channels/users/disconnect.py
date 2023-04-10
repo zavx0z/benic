@@ -1,5 +1,5 @@
 from chat.channels.users.update import update_user_status_from_dialog_participant
-from shared.socketio.connect import sio
+from shared.socketio import sio
 
 
 async def after_disconnect(sid):

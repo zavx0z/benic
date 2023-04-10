@@ -1,6 +1,6 @@
 import logging
 
-from auth.models import Role
+from sso.models import Role
 from chat.actions import UPDATE, WRITE
 from chat.actions.support import emit_admin_update_chat
 from chat.channels import CHANNEL_DIALOG, DYNAMIC_DIALOG, STATIC_DIALOG, CHANNEL_SUPPORT
@@ -9,7 +9,7 @@ from chat.crud.message import create_message
 from chat.models.message import Message
 from chat.schema import SessionUser
 from chat.schema.message import MessageResponse, MessageInfo
-from shared.socketio.connect import sio
+from shared.socketio import sio
 
 logger = logging.getLogger('action')
 

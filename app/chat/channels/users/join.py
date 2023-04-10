@@ -2,7 +2,7 @@ import logging
 
 from chat.actions import JOIN
 from chat.channels import CHANNEL_USERS, STATIC_USER
-from shared.socketio.connect import sio
+from shared.socketio import sio
 
 logger = logging.getLogger('action')
 

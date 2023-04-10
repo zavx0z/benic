@@ -5,7 +5,8 @@ from sqlalchemy import select, func, cast, Boolean, case, String
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 
-from auth.models import Device, User
+from sso.models import User
+from client.models import Device
 from chat.models.dialog import DialogParticipant
 from chat.schema.users import UserChat
 from shared.db import async_session

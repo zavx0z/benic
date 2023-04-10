@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from config import SQLALCHEMY_DATABASE_URL
 from shared import metadata
 from app.models import App, ServerAppAssociation
-from auth.models import User
+from sso.models import User
 from chat.models.dialog import Dialog
 from chat.models.message import Message, MessageReaders
 from server.models import Server

@@ -4,8 +4,8 @@ from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import FreshTokenRequired
 from sqlalchemy import select
 
-from auth.models import User
-from auth.schema.user import UserSchema
+from sso.models import User
+from sso.schema.user import UserSchema
 from shared.db import get_db
 
 router = APIRouter()

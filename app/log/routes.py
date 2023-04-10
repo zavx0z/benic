@@ -4,7 +4,7 @@ from dramatiq_abort.middleware import AbortMode
 from fastapi import APIRouter, Depends
 from fastapi_jwt_auth import AuthJWT
 
-from auth.crud.user import get_user
+from sso.crud.user import get_user
 from worker import get_running_tasks, tail_logs
 
 router = APIRouter()

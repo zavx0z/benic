@@ -4,7 +4,7 @@ from chat.actions import UPDATE
 from chat.channels import CHANNEL_USERS, STATIC_USER
 from chat.crud.dialog import get_dialogs_by_user_id
 from chat.query.users_for_dialogs import get_users_by_dialog_ids
-from shared.socketio.connect import sio
+from shared.socketio import sio
 
 logger = logging.getLogger('action')
 

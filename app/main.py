@@ -4,18 +4,21 @@ from fastapi.responses import JSONResponse
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException
 from pydantic.main import BaseModel
-
+from fastapi.staticfiles import StaticFiles
 from app.routes import router as app_router
-from auth.routes import refresh, login, user, join
+from shared.socketio import sio_app
+from sso.routes import refresh, login, user, join
+from notifications.routes import router as firebase_router
 from config import JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 from log.routes import router as log_router
 from server.routes import router as server_router
-from shared.socketio.connect import sio_app, sio
 import chat.socketio
 import chat.channels.dialogs
 import chat.channels.users
 from task.routes import router as task_router
 from workspace.routes import router as workspace_router
+import firebase_admin
+from firebase_admin import credentials
 
 app = FastAPI()
 app.add_middleware(
@@ -26,7 +29,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-message_id = None  # Инициализация переменной фоновой задачи
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+cred = credentials.Certificate('serviceAccountKey.json')
+firebase_admin.initialize_app(cred)
 
 
 class Settings(BaseModel):
@@ -58,5 +65,6 @@ app.include_router(server_router)
 app.include_router(workspace_router)
 app.include_router(task_router)
 app.include_router(log_router)
+app.include_router(firebase_router)
 
 app.mount('/', sio_app)

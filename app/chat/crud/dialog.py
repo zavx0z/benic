@@ -6,7 +6,7 @@ from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from auth.models import User
+from sso.models import User
 from chat.models.dialog import Dialog, DialogParticipant
 from chat.models.message import Message, MessageReaders
 from chat.schema.dialog import DialogChatDB
