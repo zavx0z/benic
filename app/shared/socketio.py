@@ -2,7 +2,7 @@ import logging
 
 import socketio
 
-from client.query import get_or_add_user_device, update_device_status
+from client.query.async_query import get_or_add_user_device, update_device_status
 from sso.token import get_jwt_subject
 from chat.schema import SessionUser
 from config import ASYNC_REDIS_MANAGER

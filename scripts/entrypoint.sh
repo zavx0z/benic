@@ -13,6 +13,7 @@ exec uvicorn main:app --host 0.0.0.0 --port 8000 &
 exec python -m dramatiq \
 worker \
 log.tasks \
+notifications.tasks \
 --watch /app \
 --processes 2 \
 --threads 2 \

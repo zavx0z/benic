@@ -17,8 +17,6 @@ import chat.channels.dialogs
 import chat.channels.users
 from task.routes import router as task_router
 from workspace.routes import router as workspace_router
-import firebase_admin
-from firebase_admin import credentials
 
 app = FastAPI()
 app.add_middleware(
@@ -30,10 +28,6 @@ app.add_middleware(
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-
-cred = credentials.Certificate('serviceAccountKey.json')
-firebase_admin.initialize_app(cred)
 
 
 class Settings(BaseModel):

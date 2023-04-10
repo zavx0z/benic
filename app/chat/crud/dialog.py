@@ -92,24 +92,6 @@ async def get_participant_dialogs(user_id: int):
         return dialogs
 
 
-async def get_dialogs_by_user_id(user_id: int) -> List[Tuple[int, int, str]]:
-    """Получение диалогов по ID пользователя"""
-
-    async with async_session() as session:
-        result = await session.execute(
-            select(
-                Dialog.id,
-                Dialog.name,
-                Dialog.owner_id,
-                User.username
-            )
-            .join(User, Dialog.owner_id == User.id)
-            .join(DialogParticipant, DialogParticipant.user_id == user_id)
-            .group_by(Dialog.id, User.username)
-        )
-        return result.fetchall()
-
-
 async def get_dialog_last_message(session: AsyncSession, dialog_ids: List[int]):
     subquery = (
         select(

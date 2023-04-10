@@ -8,4 +8,4 @@ def send_notification_to_user(device_token, title, message):
 
     # Отправка сообщения
     response = messaging.send(message)
-    print('Successfully sent message:', response)
+    return response

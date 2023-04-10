@@ -15,12 +15,9 @@ class SIOFormatter(logging.Formatter):
 class ActionFormatter(logging.Formatter):
     def format(self, record):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f')[:-3]
-
         username, sid, action, channel, room = record.args
         message = f"|{record.msg:^6}|{username:^22}|{sid:^20}|{action.upper():^10}|{channel:^10}|{room:^20}|"
-
         call_position = f"{record.funcName}[{record.lineno:^4}]{record.pathname}"
-
         return f"{timestamp} - {record.levelname:5} - {message}{call_position}"
 
 
@@ -55,7 +52,7 @@ conf = {
             'filename': 'app.log',
             'formatter': 'actionFormatter'
         },
-        "chat_handler": {
+        "console": {
             'class': 'logging.StreamHandler',
             'stream': sys.stdout,
             'formatter': 'chat_formatter'
@@ -81,9 +78,11 @@ conf = {
                 'actionFile',
             ]
         },
-        'chat': {
+        'notification': {
             'level': 'DEBUG',
-            'handlers': ['chat_handler']
+            'handlers': [
+                'console'
+            ]
         }
     }
 }

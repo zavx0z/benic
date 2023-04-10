@@ -4,7 +4,7 @@ from sso.models import Role
 from chat.actions import JOIN
 from chat.channels import CHANNEL_DIALOG
 from chat.channels.dialogs.join import join_dialog_static_room
-from chat.crud.dialog import get_dialogs_by_user_id
+from chat.crud.dialog import get_participant_dialogs
 from config import ADMIN_ORIGIN
 from shared.socketio import sio
 
@@ -23,8 +23,8 @@ async def check_user_dialog_permissions(user, environ, sid):
 
 async def after_connect(sid):
     user = await sio.get_session(sid)
-    # Получение списка диалогов пользователя и информации об участниках этих диалогов
-    dialogs = await get_dialogs_by_user_id(user.id)
+    # Получение всех диалогов пользователя где он является участником
+    dialogs = await get_participant_dialogs(user.id)
     # ИНФОРМАЦИОННЫЙ подписывает к комнате Диалога где присутствуют User
     for dialog in dialogs:
         join_dialog_static_room(user, dialog.id)
