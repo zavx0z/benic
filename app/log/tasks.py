@@ -1,11 +1,8 @@
 import dramatiq
 import dramatiq_abort
-import socketio
 import tailer
 
-from config import REDIS_HOST, REDIS_PORT
-
-external_sio = socketio.RedisManager(f"{REDIS_HOST}:{REDIS_PORT}", write_only=True)
+from worker import external_sio
 
 
 @dramatiq.actor(time_limit=float("inf"), max_retries=0)

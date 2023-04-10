@@ -5,10 +5,13 @@ from typing import List
 
 import dramatiq
 import dramatiq_abort
+import socketio
 from dotenv import load_dotenv
 from dramatiq.brokers.redis import RedisBroker
 from dramatiq_abort import Abortable, backends
 from pydantic import BaseModel
+
+from config import REDIS_HOST, REDIS_PORT
 
 load_dotenv(Path(__file__).parents[1] / '.env')
 REDIS_HOST = f"redis://{os.getenv('REDIS_HOST', '0.0.0.0')}"
@@ -36,3 +39,6 @@ def get_running_tasks() -> List[TaskInfo]:
         task_info_obj = TaskInfo(**value)
         tasks_info.append(task_info_obj)
     return tasks_info
+
+
+external_sio = socketio.RedisManager(f"{REDIS_HOST}:{REDIS_PORT}", write_only=True)
