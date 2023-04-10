@@ -68,6 +68,16 @@ POSTGRES_PASSWORD
 ```
 
 ------------------------------------------------------------------------------------
+
+## Dramatiq
+
 ```shell
 dramatiq worker
+```
+
+#### Убить процессы
+
+```shell
+ps aux | grep dramatiq
+kill 7382
 ```

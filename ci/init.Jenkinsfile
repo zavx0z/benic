@@ -76,6 +76,7 @@ pipeline {
             }
 
         }
+//        todo copy serviceAccountKey.json
         stage('Приложение с базой данных') {
             when { expression { return params.Refresh == false } }
             steps {

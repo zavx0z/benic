@@ -10,7 +10,13 @@ alembic upgrade head
 # Запускаем приложение
 exec uvicorn main:app --host 0.0.0.0 --port 8000 &
 # Запускаем Dramatiq worker
-exec python -m dramatiq worker --watch /app --processes 2 --threads 2 --log-file $DRAMATIQ_LOGS/dramatiq.log
+exec python -m dramatiq \
+worker \
+log.tasks \
+--watch /app \
+--processes 2 \
+--threads 2 \
+--log-file $DRAMATIQ_LOGS/dramatiq.log
 
 #Здесь мы используем оператор & для запуска приложения в фоновом режиме,
 # чтобы мы могли запустить Dramatiq worker в том же контейнере.

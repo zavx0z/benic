@@ -5,7 +5,8 @@ from fastapi import APIRouter, Depends
 from fastapi_another_jwt_auth import AuthJWT
 
 from sso.crud.user import get_user
-from worker import get_running_tasks, tail_logs
+from worker import get_running_tasks
+from log.tasks import tail_logs
 
 router = APIRouter()
 logger = logging.getLogger('action')
