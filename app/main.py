@@ -12,9 +12,9 @@ from notifications.routes import router as firebase_router
 from config import JWT_SECRET_KEY, ACCESS_TOKEN_EXPIRE_MINUTES
 from log.routes import router as log_router
 from server.routes import router as server_router
-import chat.socketio
-import chat.channels.dialogs
-import chat.channels.users
+import chat
+import dialogs
+import users
 from task.routes import router as task_router
 from workspace.routes import router as workspace_router
 

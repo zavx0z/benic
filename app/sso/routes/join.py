@@ -6,11 +6,12 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from sso.models import User, Role
-from sso.schema.user import UserWithTokenSchema
-from sso.token import create_access_token
 from events import async_event_manager, DB_CREATE_USER
 from shared.db import get_db
+from sso.models.role import Role
+from sso.models.user import User
+from sso.schema.user import UserWithTokenSchema
+from sso.token import create_access_token
 
 router = APIRouter()
 

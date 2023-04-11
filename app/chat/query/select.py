@@ -2,10 +2,10 @@ from typing import List
 
 from sqlalchemy import select
 
-from sso.models import User
-from chat.models.message import Message, MessageReaders
-from chat.schema.message import MessageResponse
-from client.schema import DeviceUserChat
+from sso.models.user import User
+from messages.models.message import Message, MessageReaders
+from messages.schema.message import MessageResponse
+from clients.schema import DeviceUserChat
 from shared.db import async_session
 
 

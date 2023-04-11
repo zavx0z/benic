@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy import select, func, and_
 
 from chat.models.dialog import Dialog, DialogParticipant
-from chat.models.message import Message, MessageReaders
+from messages.models.message import Message, MessageReaders
 from chat.schema.dialog import DialogStatistic
 from shared.db import async_session
 

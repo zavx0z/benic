@@ -8,17 +8,6 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from config import SQLALCHEMY_DATABASE_URL
 from shared import metadata
-from app.models import App, ServerAppAssociation
-from sso.models import User
-from chat.models.dialog import Dialog
-from chat.models.message import Message, MessageReaders
-from server.models import Server
-from task.models import Task
-from workspace.models import Workspace
-
-from resources.models.server import ServerResource
-from resources.models.app import AppResource
-from resources.models.task import TaskResource
 
 from core.models.provider import *
 # this is the Alembic Config object, which provides

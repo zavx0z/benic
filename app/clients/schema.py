@@ -10,6 +10,7 @@ class DevicePayloadSchema(BaseModel):
     model: Optional[str]
     os: Optional[str]
     os_version: Optional[str]
+    tz: Optional[str]
 
 
 class DeviceUserChat(BaseModel):

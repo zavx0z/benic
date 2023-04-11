@@ -19,6 +19,8 @@ class Device(Base):
     user_agent = Column(String(256), nullable=True)
     is_connected = Column(Boolean, default=True, nullable=True)
     notification_token = Column(String(256), nullable=True)
+    ip = Column(String(50), nullable=True)
+    tz = Column(String(50), nullable=True)
 
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
     user = relationship("User", back_populates="devices")

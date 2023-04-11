@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 
-from chat.models.message import Message
+from messages.models.message import Message
 from shared import Base
 
 

@@ -1,9 +1,9 @@
 import logging
 
-from sso.models import Role
+from sso.models.role import Role
 from chat.actions import JOIN
 from chat.channels import CHANNEL_DIALOG
-from chat.channels.dialogs.join import join_dialog_static_room
+from dialogs.actions.join import join_dialog_static_room
 from chat.crud.dialog import get_participant_dialogs
 from config import ADMIN_ORIGIN
 from shared.socketio import sio

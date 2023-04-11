@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
 from sso.models import User, Role
-from chat.models.message import Message
+from messages.models.message import Message
 from shared.db import async_session
 
 

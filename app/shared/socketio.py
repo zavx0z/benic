@@ -2,15 +2,16 @@ import logging
 
 import socketio
 
-from client.query.async_query import get_or_add_user_device, update_device_status
-from sso.token import get_jwt_subject
-from chat.schema import SessionUser
 from config import ASYNC_REDIS_MANAGER
+from shared.session import SessionUser
+from sso.crud.user import get_user
+from sso.token import get_jwt_subject
+from sso.socketio import get_access_token
+
+from clients.query.async_query import get_or_add_user_device, update_device_status
 from events import async_event_manager, SIO_DISCONNECT, SIO_CONNECT
 from logger import socketio_logger
-from sso.crud.user import get_user
-from client.utils import device_from_client
-from sso.socketio import get_access_token
+from clients.utils import device_from_client
 
 sio = socketio.AsyncServer(
     async_mode="asgi",
@@ -44,12 +45,13 @@ async def connect(sid, environ, auth):
     :param dict environ: словарь с информацией об окружении (для HTTP Polling)
     :param dict auth: словарь с информацией об авторизации клиента (для WebSocket)
     """
+    ip = environ['REMOTE_ADDR']
     access_token = get_access_token(sid, auth, environ)
     pk = get_jwt_subject(access_token)
     if pk:
         user = await get_user(pk)
         device_info = device_from_client(auth.get('device'))
-        device = await get_or_add_user_device(user.id, device_info)  # TODO: не надо обновлять статус, когда устройство вновь создано
+        device = await get_or_add_user_device(user.id, device_info, ip)  # TODO: не надо обновлять статус, когда устройство вновь создано
         device = await update_device_status(user.id, device.id, is_connected=True)
         await sio.save_session(sid, SessionUser(
             sid=sid,

@@ -2,16 +2,6 @@ from typing import Optional, Union
 
 from pydantic import BaseModel
 
-from sso.models import Role
-
-
-class SessionUser(BaseModel):
-    id: int
-    username: str
-    role: Role
-    device_id: int
-    sid: str
-
 
 class MessageRequest(BaseModel):
     ownerId: int

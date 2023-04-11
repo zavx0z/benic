@@ -4,7 +4,7 @@ from fastapi_another_jwt_auth import AuthJWT
 from fastapi_another_jwt_auth.exceptions import FreshTokenRequired
 from sqlalchemy import select
 
-from sso.models import User
+from sso.models.user import User
 from sso.schema.user import UserSchema
 from shared.db import get_db
 

@@ -1,6 +1,6 @@
 from sqlalchemy import select
 
-from chat.models.message import Message
+from messages.models.message import Message
 from shared.db import async_session
 
 

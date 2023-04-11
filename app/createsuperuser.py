@@ -2,7 +2,7 @@ import argparse
 import asyncio
 import sys
 
-from sso.models import Role
+from sso.models.role import Role
 from sso.routes.join import create_user
 from shared.db import async_session
 

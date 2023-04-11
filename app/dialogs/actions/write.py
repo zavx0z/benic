@@ -6,12 +6,12 @@ from chat.actions.support import emit_admin_update_chat
 from chat.channels import CHANNEL_DIALOG, DYNAMIC_DIALOG, STATIC_DIALOG, CHANNEL_SUPPORT
 from chat.crud.dialog import get_dialog_by_id, get_messages_count
 from chat.crud.message import create_message
-from chat.models.message import Message
-from chat.schema import SessionUser
-from chat.schema.message import MessageResponse, MessageInfo
+from messages.models.message import Message
+from messages.schema.message import MessageResponse, MessageInfo
 from notifications.tasks import notification_clients_not_currently_in_dialog
+from shared.session import SessionUser
 from shared.socketio import sio
-from sso.models import Role
+from sso.models.role import Role
 
 logger = logging.getLogger('action')
 

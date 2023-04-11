@@ -2,7 +2,7 @@ from typing import List
 
 from sqlalchemy import select, insert
 
-from chat.models.message import MessageReaders
+from messages.models.message import MessageReaders
 from shared.db import async_session
 
 

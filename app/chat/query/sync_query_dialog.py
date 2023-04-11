@@ -4,7 +4,7 @@ from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from chat.models.dialog import DialogParticipant
-from client.models import Device
+from clients.models import Device
 
 
 def get_clients_not_currently_in_dialog(session: Session, dialog_id: int, user_id: int, current_devices: List[int]) -> List[int]:

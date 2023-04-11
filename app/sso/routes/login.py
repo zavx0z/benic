@@ -4,7 +4,7 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy import select
 
-from sso.models import User
+from sso.models.user import User
 from sso.schema.user import UserWithTokenSchema
 from sso.token import create_access_token
 from shared.db import get_db

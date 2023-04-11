@@ -1,12 +1,12 @@
 from sqlalchemy import select, update, and_
 from sqlalchemy.exc import IntegrityError
 
-from client.models import Device
-from client.schema import DevicePayloadSchema
+from clients.models import Device
+from clients.schema import DevicePayloadSchema
 from shared.db import async_session
 
 
-async def get_or_add_user_device(user_id: int, data_device: DevicePayloadSchema):
+async def get_or_add_user_device(user_id: int, data_device: DevicePayloadSchema, ip: str):
     """
     Добавляет новое устройство для пользователя, если оно еще не существует.
     """
@@ -34,7 +34,9 @@ async def get_or_add_user_device(user_id: int, data_device: DevicePayloadSchema)
                 user_agent=data_device.user_agent,
                 user_id=user_id,
                 updated_at=None,
-                is_connected=None
+                is_connected=None,
+                ip=ip,
+                tz=data_device.tz,
             )
             try:
                 session.add(device)
@@ -45,6 +47,9 @@ async def get_or_add_user_device(user_id: int, data_device: DevicePayloadSchema)
                 raise
         # Если устройство найдено, обновляем его поля
         else:
+            device.ip = ip
+            # if data_device.tz:
+            device.tz = data_device.tz
             device.is_connected = True
             await session.commit()
         # Возвращаем найденное или созданное устройство

@@ -5,11 +5,11 @@ from sqlalchemy import select, func, cast, Boolean, case, String
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import selectinload
 
-from sso.models import User
-from client.models import Device
 from chat.models.dialog import DialogParticipant
-from client.schema import DeviceUserChat
+from clients.models import Device
+from clients.schema import DeviceUserChat
 from shared.db import async_session
+from sso.models.user import User
 
 
 async def get_users_by_dialog_ids(dialog_ids: List[int]) -> List[DeviceUserChat]:

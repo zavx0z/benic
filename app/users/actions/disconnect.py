@@ -1,4 +1,4 @@
-from chat.channels.users.update import update_user_status_from_dialog_participant
+from users.actions.update import update_user_status_from_dialog_participant
 from shared.socketio import sio
 
 

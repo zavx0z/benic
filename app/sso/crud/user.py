@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from sso.models import User
+from sso.models.user import User
 from shared.db import async_session
 
 

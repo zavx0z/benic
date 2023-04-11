@@ -1,9 +1,9 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from client.models import Device
-from client.schema import DevicePayloadSchema
-from sso.models import User
+from clients.models import Device
+from clients.schema import DevicePayloadSchema
+from sso.models.user import User
 
 
 def get_or_add_user_device(session: Session, user_id: int, data_device: DevicePayloadSchema):

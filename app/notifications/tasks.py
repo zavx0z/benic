@@ -3,8 +3,8 @@ import logging
 import dramatiq
 
 from chat.query.sync_query_dialog import get_clients_not_currently_in_dialog
-from client.query.sync_query import get_or_add_user_device, update_device_notification_token
-from client.utils import device_from_client
+from clients.query.sync_query import get_or_add_user_device, update_device_notification_token
+from clients.utils import device_from_client
 from notifications.utils import send_notification_to_user
 from worker import session
 
