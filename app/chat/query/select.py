@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sso.models import User
 from chat.models.message import Message, MessageReaders
 from chat.schema.message import MessageResponse
-from chat.schema.users import UserChat
+from client.schema import DeviceUserChat
 from shared.db import async_session
 
 
@@ -51,6 +51,6 @@ async def get_users(user_idx: List[int]):
             )
             .where(User.id.in_(user_idx))
         )
-    return [UserChat(id=i.id, name=i.username) for i in result.fetchall()]
+    return [DeviceUserChat(id=i.id, name=i.username) for i in result.fetchall()]
 
 

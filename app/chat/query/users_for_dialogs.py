@@ -8,11 +8,11 @@ from sqlalchemy.orm import selectinload
 from sso.models import User
 from client.models import Device
 from chat.models.dialog import DialogParticipant
-from chat.schema.users import UserChat
+from client.schema import DeviceUserChat
 from shared.db import async_session
 
 
-async def get_users_by_dialog_ids(dialog_ids: List[int]) -> List[UserChat]:
+async def get_users_by_dialog_ids(dialog_ids: List[int]) -> List[DeviceUserChat]:
     """ Получение состояний пользователей в диалогах в которых они состоят """
     async with async_session() as session:
         try:
@@ -61,7 +61,7 @@ async def get_users_by_dialog_ids(dialog_ids: List[int]) -> List[UserChat]:
                 .options(selectinload(User.devices))
             )
             result = await session.execute(query)
-            return [UserChat(
+            return [DeviceUserChat(
                 name=str(row[0]),
                 id=row[1],
                 lastVisit=datetime.isoformat(row[2]) if row[2] is not None else None,

@@ -2,11 +2,11 @@ from sqlalchemy import select, update, and_
 from sqlalchemy.exc import IntegrityError
 
 from client.models import Device
-from client.schema import DeviceClientSchema
+from client.schema import DevicePayloadSchema
 from shared.db import async_session
 
 
-async def get_or_add_user_device(user_id: int, data_device: DeviceClientSchema):
+async def get_or_add_user_device(user_id: int, data_device: DevicePayloadSchema):
     """
     Добавляет новое устройство для пользователя, если оно еще не существует.
     """
