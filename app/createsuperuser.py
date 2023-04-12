@@ -2,9 +2,11 @@ import argparse
 import asyncio
 import sys
 
+from chat.models.dialog import Dialog
+from shared.db import async_session
 from sso.models.role import Role
 from sso.routes.join import create_user
-from shared.db import async_session
+
 
 
 async def create_superuser_command(username: str, password: str):

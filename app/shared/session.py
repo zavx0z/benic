@@ -1,11 +1,11 @@
-from pydantic import BaseModel
+from enum import Enum
 
-from sso.models.role import Role
+from pydantic import BaseModel
 
 
 class SessionUser(BaseModel):
     id: int
     username: str
-    role: Role
+    role: Enum
     device_id: int
     sid: str

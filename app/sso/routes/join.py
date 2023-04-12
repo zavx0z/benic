@@ -12,7 +12,6 @@ from sso.models.role import Role
 from sso.models.user import User
 from sso.schema.user import UserWithTokenSchema
 from sso.token import create_access_token
-
 router = APIRouter()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

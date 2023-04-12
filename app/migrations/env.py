@@ -8,8 +8,17 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from config import SQLALCHEMY_DATABASE_URL
 from shared import metadata
-
+from sso.models.user import User
+from chat.models.dialog import Dialog, DialogParticipant
 from core.models.provider import *
+from clients.models import Device
+from messages.models.message import Message, MessageReaders
+from resources.models.app import AppResource
+from resources.models.server import ServerResource
+from resources.models.task import TaskResource
+from server.models import Server
+from task.models import Task
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
