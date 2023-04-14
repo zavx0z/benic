@@ -7,7 +7,7 @@ from chat.channels import CHANNEL_DIALOG, DYNAMIC_DIALOG, STATIC_DIALOG, CHANNEL
 from chat.crud.dialog import get_dialog_by_id, get_messages_count
 from chat.crud.message import create_message
 from messages.models.message import Message
-from messages.schema.message import MessageResponse, MessageInfo
+from messages.schema.message import MessageInfo, MessageResponse
 from notifications.tasks import notification_clients_not_currently_in_dialog
 from shared.session import SessionUser
 from shared.socketio import sio
@@ -23,15 +23,15 @@ async def current_clients_in_dialog(dialog_id: int) -> List[int]:
     return all_clients
 
 
-async def send_msg_info_to_dialog_participants(user: SessionUser, dialog_id: int, message: Message):
+async def emit_message_info_to_dialog_participants(user: SessionUser, dialog_id: int, message: MessageResponse):
     """Рассылка информации о переданном сообщении всем участникам диалога
 
     (для установки последнего сообщения и увеличения счетчика)
     """
     room = STATIC_DIALOG(dialog_id)
     data_info = MessageInfo(
-        lastMessageSenderId=message.sender_id,
-        lastMessageTime=message.created_at.isoformat(),
+        lastMessageSenderId=message.senderId,
+        lastMessageTime=message.created,
         lastMessageText=message.text[:min(len(message.text), 40)]
     )
     await sio.emit(event=CHANNEL_DIALOG, room=room, data={
@@ -51,25 +51,18 @@ async def send_msg_info_to_dialog_participants(user: SessionUser, dialog_id: int
     logger.info(user.id, user.username, user.sid, UPDATE, CHANNEL_DIALOG, room)
 
 
-async def send_msg_detail_to_dialog_participants(user: SessionUser, dialog_id: int, message: Message):
+async def emit_message_detail_to_dialog_participants(user: SessionUser, dialog_id: int, message: MessageResponse):
     """ Рассылка переданного сообщения участникам которые в текущий момент находятся в диалоге
 
     1. Собеседникам в диалоге
     2. Себе (для подтверждения получения и обновления времени и id сообщения/отправитель может быть и на других устройствах под другим sid)
     """
     room = DYNAMIC_DIALOG(dialog_id)
-    data_message = MessageResponse(
-        id=message.id,
-        senderId=message.sender_id,
-        created=message.created_at.isoformat(),
-        text=message.text,
-        read=False
-    )
-    await sio.emit(event=CHANNEL_DIALOG, room=room, data={
+    await sio.emit(event=CHANNEL_DIALOG, room=room, skip_sid=user.sid, data={
         'action': WRITE,
         "data": {
             "dialogId": dialog_id,
-            "message": dict(data_message)
+            "message": dict(message)
         }})
     logger.info(user.id, user.username, user.sid, WRITE, CHANNEL_DIALOG, room)
 
@@ -84,12 +77,13 @@ async def receiving_message(user, dialog_id, text):
     """
     dialog = await get_dialog_by_id(dialog_id)
     message = await create_message(text=text, sender_id=user.id, dialog_id=dialog.id)
-
+    message = MessageResponse(**message.__dict__)
     if CHANNEL_SUPPORT == dialog.name and user.role.value <= Role.developer.value:
         count_messages = await get_messages_count(dialog_id)
         if count_messages == 2:
-            await emit_admin_update_chat(user.id, dialog.id, message)
-            await send_msg_detail_to_dialog_participants(user, dialog_id, message)
-            return
-    await send_msg_detail_to_dialog_participants(user, dialog_id, message)
-    await send_msg_info_to_dialog_participants(user, dialog_id, message)
+            await emit_admin_update_chat(user.id, dialog.id, message.text, message.created)
+            await emit_message_detail_to_dialog_participants(user, dialog_id, message)
+            return message
+    await emit_message_detail_to_dialog_participants(user, dialog_id, message)
+    await emit_message_info_to_dialog_participants(user, dialog_id, message)
+    return message

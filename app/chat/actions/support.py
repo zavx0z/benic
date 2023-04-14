@@ -10,7 +10,7 @@ from shared.socketio import sio
 logger = logging.getLogger('action')
 
 
-async def emit_admin_update_chat(user_id, dialog_id: int, msg):
+async def emit_admin_update_chat(user_id, dialog_id: int, last_message_text: str, last_message_time: str):
     admin = await get_user(ADMIN_ID)
     room = STATIC_USER(admin.id)
     users = await get_users_by_dialog_ids([dialog_id])
@@ -26,8 +26,8 @@ async def emit_admin_update_chat(user_id, dialog_id: int, msg):
                     'ownerId': user_id,
                     'totalMessages': 2,
                     'unreadMessages': 1,
-                    'lastMessageText': msg.text,
-                    'lastMessageTime': msg.created_at.isoformat(),
+                    'lastMessageText': last_message_text,
+                    'lastMessageTime': last_message_time,
                     'lastMessageSenderId': user_id,
                     'participants': [user_id, ADMIN_ID]
                 },

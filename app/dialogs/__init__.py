@@ -4,14 +4,14 @@ from chat.actions import JOIN, LEAVE, READ, WRITE, JOIN_STATIC
 from chat.channels import CHANNEL_DIALOG
 from chat.query.select import get_messages_for_dialog
 from chat.schema import ChatPayload
-from events import async_event_manager, SIO_CONNECT, DB_CREATE_USER
-from shared.socketio import sio
 from dialogs.actions.connect import after_connect
-from .hooks import after_create_user
 from dialogs.actions.join import join_dialog_dynamic_room, join_dialog_static_room
 from dialogs.actions.leave import leave_dialog_dynamic_room
 from dialogs.actions.read import read
 from dialogs.actions.write import receiving_message
+from events import async_event_manager, SIO_CONNECT, DB_CREATE_USER
+from shared.socketio import sio
+from .hooks import after_create_user
 
 logger = logging.getLogger('sio')
 
@@ -35,6 +35,7 @@ async def channel_dialog(sid: str, payload: ChatPayload):  # todo: переда�
     elif READ == payload.action:  # Установка статуса ПРОЧИТАНО для сообщений отправителя
         await read(user, dialog_id, message_ids=payload.data.get('messageIds'))
     elif WRITE == payload.action:
-        await receiving_message(user, dialog_id, text=payload.data.get("text"))
+        message = await receiving_message(user, dialog_id, text=payload.data.get("text"))
+        return dict(message)
     elif JOIN_STATIC == payload.action:
         join_dialog_static_room(user, dialog_id)

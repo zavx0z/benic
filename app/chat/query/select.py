@@ -2,14 +2,14 @@ from typing import List
 
 from sqlalchemy import select
 
-from sso.models.user import User
+from clients.schema import DeviceUserChat
 from messages.models.message import Message, MessageReaders
 from messages.schema.message import MessageResponse
-from clients.schema import DeviceUserChat
 from shared.db import async_session
+from sso.models.user import User
 
 
-async def get_messages_for_dialog(dialog_id: int, user_id: int):
+async def get_messages_for_dialog(dialog_id: int, user_id: int) -> List[MessageResponse]:
     """Получение сообщений для диалога и информации о том, прочитал ли пользователь сообщение
 
     SQL запрос, который:
@@ -22,22 +22,19 @@ async def get_messages_for_dialog(dialog_id: int, user_id: int):
     """
     async with async_session() as session:
         result = await session.execute(
-            select(Message.id,
-                   Message.text,
-                   Message.created_at,
-                   Message.sender_id,
-                   MessageReaders.read_time)
+            select(
+                Message.id,
+                Message.text,
+                Message.created_at,
+                Message.sender_id,
+                MessageReaders.read_time.label('read')
+            )
             .join(MessageReaders, Message.id == MessageReaders.message_id, isouter=True)
             .filter(Message.dialog_id == dialog_id)
             .order_by(Message.created_at)
         )
-        return [MessageResponse(
-            id=m.id,
-            senderId=m.sender_id,
-            created=m.created_at.isoformat(),
-            text=m.text,
-            read=bool(m.read_time is not None)
-        ) for m in result]
+        messages = result.mappings()
+        return [MessageResponse(**message) for message in messages]
 
 
 async def get_users(user_idx: List[int]):
