@@ -2,16 +2,15 @@ import logging
 
 import socketio
 
-from config import ASYNC_REDIS_MANAGER
-from shared.session import SessionUser
-from sso.crud.user import get_user
-from sso.token import get_jwt_subject
-from sso.socketio import get_access_token
-
 from clients.query.async_query import get_or_add_user_device, update_device_status
+from clients.schema import DevicePayloadSchema
+from config import ASYNC_REDIS_MANAGER
 from events import async_event_manager, SIO_DISCONNECT, SIO_CONNECT
 from logger import socketio_logger
-from clients.utils import device_from_client
+from shared.session import SessionUser
+from sso.crud.user import get_user
+from sso.socketio import get_access_token
+from sso.token import get_jwt_subject
 
 sio = socketio.AsyncServer(
     async_mode="asgi",
@@ -50,7 +49,7 @@ async def connect(sid, environ, auth):
     pk = get_jwt_subject(access_token)
     if pk:
         user = await get_user(pk)
-        device_info = device_from_client(auth.get('device'))
+        device_info = DevicePayloadSchema(**auth.get('device'))
         device = await get_or_add_user_device(user.id, device_info, ip)  # TODO: не надо обновлять статус, когда устройство вновь создано
         device = await update_device_status(user.id, device.id, is_connected=True)
         await sio.save_session(sid, SessionUser(
@@ -62,6 +61,7 @@ async def connect(sid, environ, auth):
         ))
         logger.info(user.id, user.username, sid, CONNECT, device_info.os, device_info.model)
         await async_event_manager.notify(SIO_CONNECT, sid)  # Событие менеджеру
+        await sio.emit('remoteLog', True, room=sid)
     else:
         await sio.disconnect(sid)
         logger.error('-', 'anon', sid, CONNECT, "token", "не найден")

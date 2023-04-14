@@ -14,7 +14,8 @@ echo "POSTGRES_DB = ${POSTGRES_DB}"
 echo "POSTGRES_USER = ${POSTGRES_USER}"
 echo "POSTGRES_PASSWORD = ${POSTGRES_PASSWORD}"
 
-docker run --rm --detach \
+#docker run --rm --detach \
+docker run --detach \
   --name db \
   -p 5432:5432 \
   -v "${store_dir}:/var/lib/postgresql/data" \

@@ -6,6 +6,36 @@ from clients.schema import DevicePayloadSchema
 from shared.db import async_session
 
 
+async def create_device(user_id: int, data: DevicePayloadSchema, ip: str):
+    async with async_session() as session:
+        device = Device(
+            is_mobile=data.is_mobile,
+            is_tablet=data.is_tablet,
+            is_browser=data.is_browser,
+            vendor=data.vendor,
+            model=data.model,
+            os=data.os,
+            os_version=data.os_version,
+            user_agent=data.user_agent,
+            user_id=user_id,
+            updated_at=None,
+            is_connected=True,
+            ip=ip,
+            tz=data.tz,
+            width=data.width,
+            height=data.height,
+            resolution=data.resolution,
+        )
+        try:
+            session.add(device)
+            await session.commit()
+            return device
+        except IntegrityError:
+            # Обрабатываем ошибки базы данных
+            await session.rollback()
+            raise
+
+
 async def get_or_add_user_device(user_id: int, data_device: DevicePayloadSchema, ip: str):
     """
     Добавляет новое устройство для пользователя, если оно еще не существует.
@@ -14,37 +44,23 @@ async def get_or_add_user_device(user_id: int, data_device: DevicePayloadSchema,
         # Ищем устройство в базе данных, используя параметры
         device = await session.execute(select(Device).filter_by(
             is_mobile=data_device.is_mobile,
+            is_tablet=data_device.is_tablet,
+            is_browser=data_device.is_browser,
             vendor=data_device.vendor,
             model=data_device.model,
             os=data_device.os,
             os_version=data_device.os_version,
             user_agent=data_device.user_agent,
-            user_id=user_id
+            user_id=user_id,
+            width=data_device.width,
+            height=data_device.height,
+            resolution=data_device.resolution,
         ))
         # Извлекаем результат запроса
         device = device.scalar()
         # Если устройство не найдено, создаем новое и добавляем его в базу данных
         if device is None:
-            device = Device(
-                is_mobile=data_device.is_mobile,
-                vendor=data_device.vendor,
-                model=data_device.model,
-                os=data_device.os,
-                os_version=data_device.os_version,
-                user_agent=data_device.user_agent,
-                user_id=user_id,
-                updated_at=None,
-                is_connected=None,
-                ip=ip,
-                tz=data_device.tz,
-            )
-            try:
-                session.add(device)
-                await session.commit()
-            except IntegrityError:
-                # Обрабатываем ошибки базы данных
-                await session.rollback()
-                raise
+            device = await create_device(user_id, data_device, ip)
         # Если устройство найдено, обновляем его поля
         else:
             device.ip = ip

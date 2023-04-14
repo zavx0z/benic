@@ -3,7 +3,7 @@ import logging
 from chat.actions import UPDATE
 from chat.channels import CHANNEL_USERS, STATIC_USER
 from chat.crud.dialog import get_participant_dialogs
-from chat.query.users_for_dialogs import get_users_by_dialog_ids
+from users.query.users_for_client import get_users_by_dialog_ids
 from shared.socketio import sio
 
 logger = logging.getLogger('action')

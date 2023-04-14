@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 03b36467d0db
+Revision ID: afb82946d826
 Revises: 
-Create Date: 2023-04-12 08:38:16.709540
+Create Date: 2023-04-14 13:39:52.479826
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '03b36467d0db'
+revision = 'afb82946d826'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -69,6 +69,8 @@ def upgrade() -> None:
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
     sa.Column('is_mobile', sa.Boolean(), nullable=False),
+    sa.Column('is_tablet', sa.Boolean(), nullable=False),
+    sa.Column('is_browser', sa.Boolean(), nullable=False),
     sa.Column('vendor', sa.String(length=50), nullable=True),
     sa.Column('model', sa.String(length=50), nullable=True),
     sa.Column('os', sa.String(length=50), nullable=True),
@@ -78,6 +80,9 @@ def upgrade() -> None:
     sa.Column('notification_token', sa.String(length=256), nullable=True),
     sa.Column('ip', sa.String(length=50), nullable=True),
     sa.Column('tz', sa.String(length=50), nullable=True),
+    sa.Column('width', sa.Integer(), nullable=True),
+    sa.Column('height', sa.Integer(), nullable=True),
+    sa.Column('resolution', sa.Integer(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')

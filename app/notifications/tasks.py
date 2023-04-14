@@ -4,7 +4,7 @@ import dramatiq
 
 from chat.query.sync_query_dialog import get_clients_not_currently_in_dialog
 from clients.query.sync_query import get_or_add_user_device, update_device_notification_token
-from clients.utils import device_from_client
+from clients.schema import DevicePayloadSchema
 from notifications.utils import send_notification_to_user
 from worker import session
 
@@ -13,7 +13,7 @@ logger = logging.getLogger('notification')
 
 @dramatiq.actor(max_retries=4)
 def notification_subscribe(user_id, device_payload, token):
-    device_client = device_from_client(device_payload)
+    device_client = DevicePayloadSchema(**device_payload)
     device_db = get_or_add_user_device(session, user_id, device_client)
     if token != device_db.notification_token:
         device = update_device_notification_token(session, device_db.id, token)

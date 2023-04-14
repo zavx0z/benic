@@ -15,6 +15,7 @@ from server.routes import router as server_router
 import chat
 import dialogs
 import users
+import log
 from task.routes import router as task_router
 from workspace.routes import router as workspace_router
 

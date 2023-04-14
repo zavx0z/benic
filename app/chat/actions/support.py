@@ -3,7 +3,7 @@ import logging
 from sso.crud.user import get_user
 from chat.actions import UPDATE
 from chat.channels import STATIC_USER, CHANNEL_CHAT
-from chat.query.users_for_dialogs import get_users_by_dialog_ids
+from users.query.users_for_client import get_users_by_dialog_ids
 from config import ADMIN_ID
 from shared.socketio import sio
 

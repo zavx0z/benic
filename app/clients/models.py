@@ -12,6 +12,8 @@ class Device(Base):
     created_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime(timezone=True), default=datetime.utcnow, nullable=False, onupdate=datetime.utcnow)
     is_mobile = Column(Boolean, default=False, nullable=False)
+    is_tablet = Column(Boolean, default=False, nullable=False)
+    is_browser = Column(Boolean, default=False, nullable=False)
     vendor = Column(String(50), nullable=True)
     model = Column(String(50), nullable=True)
     os = Column(String(50), nullable=True)
@@ -21,6 +23,9 @@ class Device(Base):
     notification_token = Column(String(256), nullable=True)
     ip = Column(String(50), nullable=True)
     tz = Column(String(50), nullable=True)
+    width = Column(Integer, nullable=True)
+    height = Column(Integer, nullable=True)
+    resolution = Column(Integer, nullable=True)
 
     user_id = Column(Integer, ForeignKey('user.id'), nullable=False)
     user = relationship("User", back_populates="devices")

@@ -16,6 +16,7 @@ class ActionFormatter(logging.Formatter):
     def format(self, record):
         timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S,%f')[:-3]
         username, sid, action, channel, room = record.args
+        room = room if room else ' '
         message = f"|{record.msg:^6}|{username:^22}|{sid:^20}|{action.upper():^10}|{channel:^10}|{room:^20}|"
         call_position = f"{record.funcName}[{record.lineno:^4}]{record.pathname}"
         return f"{timestamp} - {record.levelname:5} - {message}{call_position}"
@@ -61,6 +62,10 @@ conf = {
             'class': 'logging.FileHandler',
             'filename': 'app.log',
             'formatter': 'sio_formatter'
+        },
+        'device_file': {
+            'class': 'logging.FileHandler',
+            'filename': 'device.log'
         }
     },
     'loggers': {
@@ -82,6 +87,12 @@ conf = {
             'level': 'DEBUG',
             'handlers': [
                 'console'
+            ]
+        },
+        'device': {
+            'level': 'INFO',
+            'handlers': [
+                'device_file'
             ]
         }
     }

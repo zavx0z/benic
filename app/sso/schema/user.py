@@ -1,5 +1,7 @@
 from pydantic.main import BaseModel
 
+from clients.schema import DevicePayloadSchema
+
 
 class UserSchema(BaseModel):
     id: int
@@ -10,3 +12,9 @@ class UserSchema(BaseModel):
 class UserWithTokenSchema(UserSchema):
     accessToken: str
     refreshToken: str
+
+
+class JoinUserRequest(BaseModel):
+    username: str
+    password: str
+    device: DevicePayloadSchema
