@@ -52,9 +52,6 @@ async def get_or_add_user_device(user_id: int, data_device: DevicePayloadSchema,
             os_version=data_device.os_version,
             user_agent=data_device.user_agent,
             user_id=user_id,
-            width=data_device.width,
-            height=data_device.height,
-            resolution=data_device.resolution,
         ))
         # Извлекаем результат запроса
         device = device.scalar()

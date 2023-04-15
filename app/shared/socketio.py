@@ -59,9 +59,8 @@ async def connect(sid, environ, auth):
             role=user.role,
             device_id=device.id
         ))
-        logger.info(user.id, user.username, sid, CONNECT, device_info.os, device_info.model)
+        logger.info(user.id, user.username, sid, CONNECT, 'device', device.id)
         await async_event_manager.notify(SIO_CONNECT, sid)  # Событие менеджеру
-        await sio.emit('remoteLog', True, room=sid)
     else:
         await sio.disconnect(sid)
         logger.error('-', 'anon', sid, CONNECT, "token", "не найден")

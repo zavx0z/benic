@@ -6,6 +6,7 @@ from clients.schema import DevicePayloadSchema
 from sso.models.user import User
 
 
+# fixme проверить нотификацию
 def get_or_add_user_device(session: Session, user_id: int, data_device: DevicePayloadSchema):
     """
     Добавляет новое устройство для пользователя, если оно еще не существует.

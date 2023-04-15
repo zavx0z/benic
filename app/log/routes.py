@@ -1,12 +1,17 @@
 import logging
+
 from dramatiq_abort import abort
 from dramatiq_abort.middleware import AbortMode
 from fastapi import APIRouter, Depends
 from fastapi_another_jwt_auth import AuthJWT
+from pydantic import BaseModel
 
+from chat.channels import STATIC_USER
+from log.tasks import tail_logs
+from shared.socketio import sio
+from shared.utils.sio import get_users_session_for_room
 from sso.crud.user import get_user
 from worker import get_running_tasks
-from log.tasks import tail_logs
 
 router = APIRouter()
 logger = logging.getLogger('action')
@@ -36,3 +41,28 @@ async def stop_tail_logs(authjwt: AuthJWT = Depends()):
         abort(message_id=task.message_id, mode=AbortMode.ABORT, abort_timeout=1000)
         logger.info(user.id, user.username, 'sid', 'KILL', 'log', 'broadcast')
 
+
+class UserLog(BaseModel):
+    id: int
+
+
+@router.post("/api.v1/user_log/start")
+async def start_user_logs(item: UserLog, authjwt: AuthJWT = Depends()):
+    authjwt.jwt_required()
+    pk = authjwt.get_jwt_subject()
+    user = await get_user(pk)
+    room = STATIC_USER(pk)
+    devices_user = await get_users_session_for_room(STATIC_USER(item.id))
+    await sio.emit('remoteLog', True, room=devices_user[0].sid)
+    logger.info(user.id, user.username, 'sid', 'START', 'user_log', room)
+
+
+@router.post("/api.v1/user_log/stop")
+async def stop_user_logs(item: UserLog, authjwt: AuthJWT = Depends()):
+    authjwt.jwt_required()
+    pk = authjwt.get_jwt_subject()
+    user = await get_user(pk)
+    room = STATIC_USER(pk)
+    devices_user = await get_users_session_for_room(STATIC_USER(item.id))
+    await sio.emit('remoteLog', False, room=devices_user[0].sid)
+    logger.info(user.id, user.username, 'sid', 'START', 'user_log', room)
