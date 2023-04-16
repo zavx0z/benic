@@ -1,4 +1,5 @@
 import logging
+from enum import Enum
 
 from dramatiq_abort import abort
 from dramatiq_abort.middleware import AbortMode
@@ -42,27 +43,23 @@ async def stop_tail_logs(authjwt: AuthJWT = Depends()):
         logger.info(user.id, user.username, 'sid', 'KILL', 'log', 'broadcast')
 
 
+class TypeLogs(Enum):
+    remote = 'remote'
+    console = 'console'
+    off = 'off'
+
+
 class UserLog(BaseModel):
     id: int
+    type: TypeLogs
 
 
-@router.post("/api.v1/user_log/start")
+@router.post("/api.v1/user_log")
 async def start_user_logs(item: UserLog, authjwt: AuthJWT = Depends()):
     authjwt.jwt_required()
     pk = authjwt.get_jwt_subject()
     user = await get_user(pk)
     room = STATIC_USER(pk)
     devices_user = await get_users_session_for_room(STATIC_USER(item.id))
-    await sio.emit('remoteLog', True, room=devices_user[0].sid)
-    logger.info(user.id, user.username, 'sid', 'START', 'user_log', room)
-
-
-@router.post("/api.v1/user_log/stop")
-async def stop_user_logs(item: UserLog, authjwt: AuthJWT = Depends()):
-    authjwt.jwt_required()
-    pk = authjwt.get_jwt_subject()
-    user = await get_user(pk)
-    room = STATIC_USER(pk)
-    devices_user = await get_users_session_for_room(STATIC_USER(item.id))
-    await sio.emit('remoteLog', False, room=devices_user[0].sid)
+    await sio.emit('remoteLog', {"type": item.type.value}, room=devices_user[0].sid)
     logger.info(user.id, user.username, 'sid', 'START', 'user_log', room)
