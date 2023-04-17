@@ -3,10 +3,10 @@ from chat.crud.dialog import create_dialog
 from chat.crud.message import create_message
 from config import ADMIN_ID
 
-welcome_text = f"""Добро пожаловать в наш чат поддержки! 
-Если у вас есть вопросы, задавайте их здесь.
-Благодарим вас за выбор нашей платформы.
-Если у вас есть отзывы или предложения, мы будем рады их услышать."""
+welcome_text = f"""Добро пожаловать в чат поддержки! 
+Готовы ответить на любые Ваши вопросы.
+Также в чате можно оставить ваш отзыв или предложения.
+Благодарим Вас за выбор нашей платформы."""
 
 
 async def after_create_user(user_id: int):
