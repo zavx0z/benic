@@ -61,5 +61,6 @@ async def start_user_logs(item: UserLog, authjwt: AuthJWT = Depends()):
     user = await get_user(pk)
     room = STATIC_USER(pk)
     devices_user = await get_users_session_for_room(STATIC_USER(item.id))
-    await sio.emit('remoteLog', {"type": item.type.value}, room=devices_user[0].sid)
-    logger.info(user.id, user.username, 'sid', 'START', 'user_log', room)
+    if len(devices_user):
+        await sio.emit('remoteLog', {"type": item.type.value}, room=devices_user[0].sid)
+        logger.info(user.id, user.username, 'sid', 'START', 'user_log', room)
