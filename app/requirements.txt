@@ -1,8 +1,8 @@
-fastapi==0.95.0
+fastapi==0.95.1
 pydantic==1.10.7
 uvicorn[standard]==0.21.1
 python-socketio==5.8.0
-aioredis
+aioredis==2.0.1
 
 firebase-admin==6.1.0
 
@@ -10,13 +10,13 @@ SQLAlchemy==2.0.9
 asyncpg==0.27.0
 alembic==1.10.3
 
-fastapi-another-jwt-auth
+fastapi-another-jwt-auth==0.1.7
 passlib==1.7.4
 
 python-dotenv==1.0.0
 
-dramatiq[redis, watch]
-dramatiq-abort[redis]
+dramatiq[redis, watch]==1.14.2
+dramatiq-abort[redis]==1.0.0
 psycopg2-binary==2.9.6
 
-tailer
+tailer==0.4.1
