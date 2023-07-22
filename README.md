@@ -17,10 +17,10 @@ docker build -t zavx0z:benic .
 ```shell
 docker run -d --rm \
   --name app \
-  -e POSTGRES_USER=zavx0zBenif \
-  -e POSTGRES_PASSWORD=12112022 \
-  -e POSTGRES_DB=benif \
-  -e JWT_SECRET_KEY='adkngdfFDGSDFqhnlakjflorqirefOJ;SJDG' \
+  -e POSTGRES_USER=username \
+  -e POSTGRES_PASSWORD=pswd \
+  -e POSTGRES_DB=dbname \
+  -e JWT_SECRET_KEY=jwtkey \
   -p 8080:8000 \
   zavx0z:benic
 ```
