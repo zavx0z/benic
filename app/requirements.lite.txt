@@ -1,0 +1,23 @@
+fastapi
+pydantic
+uvicorn[standard]
+python-socketio
+aioredis
+
+psycopg2-binary
+asyncpg
+SQLAlchemy
+alembic
+
+bcrypt
+git+https://github.com/GlitchCorp/fastapi-another-jwt-auth@refs/pull/20/merge
+# fastapi-another-jwt-auth==0.1.8
+passlib
+python-dotenv
+
+dramatiq[watch]
+dramatiq[watch]
+dramatiq-abort[redis]
+
+tailer
+firebase-admin

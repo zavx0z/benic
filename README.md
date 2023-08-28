@@ -25,7 +25,7 @@ docker run -d --rm \
   zavx0z:benic
 ```
 
-----------------------------------------------------------------
+---
 
 ## Docker
 
@@ -55,7 +55,7 @@ alembic revision --autogenerate -m 'init'
 alembic upgrade head
 ```
 
------------------------------------------------------------------------------------
+---
 
 ## .env
 
@@ -67,7 +67,7 @@ POSTGRES_USER
 POSTGRES_PASSWORD
 ```
 
-------------------------------------------------------------------------------------
+---
 
 ## Dramatiq
 
@@ -81,3 +81,15 @@ dramatiq worker
 ps aux | grep dramatiq
 kill 7382
 ```
+
+# Windows
+
+Использование команды «Создать среду»
+Чтобы создать локальные среды в VS Code с использованием виртуальных сред или Anaconda, вы можете выполнить следующие действия: откройте палитру команд ( Ctrl+Shift+P ), найдите команду `Python: Create Environment` и выберите ее.
+` Python: Select Interpreter`
+
+[vsCode debug](https://fastapi.tiangolo.com/tutorial/debugging/)
+
+`alembic upgrade head`
+
+[firebase FCM serviceAccountKey.json](https://console.firebase.google.com/project/bots-work/settings/serviceaccounts/adminsdk)

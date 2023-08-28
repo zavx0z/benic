@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  db:
+    container_name: db
+    image: postgres:alpine
+    env_file:
+      - .env.dev
+    volumes:
+      - ${POSTGRES_DIR}/data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    restart: always
+    networks:
+      net:
+        aliases:
+          - ${POSTGRES_HOST}
+  redis:
+    container_name: redis
+    env_file:
+      - .env.dev
+    image: redis:alpine
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    restart: always
+    networks:
+      net:
+        aliases:
+          - ${REDIS_HOST}
+networks:
+  net:
+    driver: bridge
